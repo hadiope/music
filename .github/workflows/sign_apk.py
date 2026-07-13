@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Set compileSdk=35/targetSdk=35/minSdk=23 and inject release signing into
+"""Set compileSdk=36/targetSdk=36/minSdk=23 and inject release signing into
 android/app/build.gradle(.kts). Supports Groovy and Kotlin DSL.
 
-Note: compileSdk is 35 (stable, available on GitHub runners). The pinned
-file_picker ^7.0.0 is compatible with compileSdk 34/35, so no root-level
+Note: compileSdk is 36 (matches file_picker 8 requirement).
+file_picker ^8.0.0 requires compileSdk 36; platform 36 is installed in CI.
 subprojects hack is required.
 """
 import os
@@ -29,14 +29,14 @@ def main():
 
     # SDK versions
     if KTS:
-        s = re.sub(r"compileSdk\s*=.*", "compileSdk = 35", s)
-        s = re.sub(r"targetSdk\s*=.*", "targetSdk = 35", s)
+        s = re.sub(r"compileSdk\s*=.*", "compileSdk = 36", s)
+        s = re.sub(r"targetSdk\s*=.*", "targetSdk = 36", s)
         s = re.sub(r"minSdk\s*=.*", "minSdk = 23", s)
     else:
-        s = re.sub(r"compileSdkVersion\s+.*", "compileSdkVersion 35", s)
-        s = re.sub(r"targetSdkVersion\s+.*", "targetSdkVersion 35", s)
+        s = re.sub(r"compileSdkVersion\s+.*", "compileSdkVersion 36", s)
+        s = re.sub(r"targetSdkVersion\s+.*", "targetSdkVersion 36", s)
         s = re.sub(r"minSdkVersion\s+.*", "minSdkVersion 23", s)
-    print("app module: compileSdk=35, targetSdk=35, minSdk=23")
+    print("app module: compileSdk=36, targetSdk=36, minSdk=23")
 
     # Signing
     pw = os.environ.get("KEYSTORE_PASSWORD", "")
