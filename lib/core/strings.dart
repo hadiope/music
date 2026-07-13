@@ -5,7 +5,7 @@ import '../providers/settings_provider.dart';
 /// Lightweight i18n. Each string has a fa + en value. The provider below
 /// watches the locale and keeps T in sync so the whole UI flips instantly.
 class T {
-  T._();
+  T();
   static String tr(String fa, String en) => _locale == 'en' ? en : fa;
 
   static String get localeCode => _locale;

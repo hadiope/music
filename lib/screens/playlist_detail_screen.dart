@@ -2,6 +2,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/playlist.dart';
+import '../providers/core_providers.dart';
 import '../providers/playlist_provider.dart';
 import '../providers/songs_provider.dart';
 import '../providers/player_provider.dart';

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../core/constants.dart';
+import '../core/strings.dart';
 import '../core/theme.dart';
 import '../providers/auth_provider.dart';
 import '../providers/core_providers.dart';
@@ -87,7 +88,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     ref.watch(tProvider); // sync language
     final user = ref.watch(currentUserProvider);
     final themeMode = ref.watch(themeProvider);
