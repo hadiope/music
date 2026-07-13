@@ -29,7 +29,6 @@ class HomeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final newReleases = ref.watch(newReleasesProvider);
     final popular = ref.watch(popularProvider);
-    final banners = ref.watch(bannersProvider);
     final user = _userName();
 
     return Scaffold(

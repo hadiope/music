@@ -80,6 +80,21 @@ jobs:
           done
           echo "minSdk patched"
 
+      - name: Set compileSdk & targetSdk to 36 (required by file_picker/plugins)
+        run: |
+          for f in android/app/build.gradle android/app/build.gradle.kts; do
+            if [ -f "$f" ]; then
+              sed -i -E 's/(compileSdkVersion|compileSdk ?=?)[^0-9]*[0-9]+/\1 36/g' "$f"
+              sed -i -E 's/(targetSdkVersion|targetSdk ?=?)[^0-9]*[0-9]+/\1 36/g' "$f"
+              # Handle flutter.compileSdkVersion references
+              sed -i -E 's/compileSdk = flutter.compileSdkVersion/compileSdk = 36/g' "$f"
+              sed -i -E 's/targetSdk = flutter.targetSdkVersion/targetSdk = 36/g' "$f"
+            fi
+          done
+          echo "compileSdk/targetSdk patched"
+          echo "=== build.gradle sdk lines ==="
+          grep -iE "compileSdk|targetSdk|minSdk" android/app/build.gradle || true
+
       # Inject signing config into build.gradle so the APK is properly signed
       - name: Configure signing in build.gradle
         env:
