@@ -23,8 +23,14 @@ jobs:
         with:
           channel: 'stable'
 
-      # Generate the Android platform files (this creates android/ with a valid
-      # AndroidManifest.xml). We DO NOT ship our own android/ in the repo.
+      # Decode the production keystore from the GitHub Secret
+      - name: Decode signing keystore
+        run: |
+          set -e
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > /tmp/harmony_release.keystore
+          echo "keystore decoded: $(ls -la /tmp/harmony_release.keystore | awk '{print $5}') bytes"
+
+      # Generate the Android platform files (creates android/ with a valid Manifest)
       - name: Generate Android platform files
         run: |
           set -e
@@ -41,17 +47,14 @@ jobs:
           set -e
           ICONS=assets/icons
           if [ -d "$ICONS" ]; then
-            # mipmap density folders
             for d in mdpi hdpi xhdpi xxhdpi xxxhdpi; do
               if [ -d "$ICONS/mipmap-$d" ]; then
                 mkdir -p "android/app/src/main/res/mipmap-$d"
                 cp -f "$ICONS/mipmap-$d/"* "android/app/src/main/res/mipmap-$d/" 2>/dev/null || true
               fi
             done
-            # adaptive icon xml (anydpi-v26)
             mkdir -p "android/app/src/main/res/mipmap-anydpi-v26"
             cp -f "$ICONS/mipmap-anydpi-v26/"* "android/app/src/main/res/mipmap-anydpi-v26/" 2>/dev/null || true
-            # background color
             mkdir -p "android/app/src/main/res/values"
             cp -f "$ICONS/ic_launcher_background.xml" "android/app/src/main/res/values/" 2>/dev/null || true
             echo "icons applied"
@@ -78,11 +81,30 @@ jobs:
           done
           echo "minSdk patched"
 
+      # Inject signing config into build.gradle so the APK is properly signed
+      - name: Configure signing in build.gradle
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+        run: |
+          set -e
+          python3 "$GITHUB_WORKSPACE/sign_apk.py"
+          echo "signing configured"
+
       - name: Get dependencies
         run: flutter pub get
 
-      - name: Build APK (release)
-        run: flutter build apk --release
+      - name: Build signed APK (release)
+        run: |
+          set -e
+          flutter build apk --release
+          APK=build/app/outputs/flutter-apk/app-release.apk
+          if [ -f "$APK" ]; then
+            echo "APK built and signed: $(ls -la $APK | awk '{print $5}') bytes"
+          else
+            echo "APK not found, failing"
+            exit 1
+          fi
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
