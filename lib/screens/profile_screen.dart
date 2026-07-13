@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../core/constants.dart';
 import '../core/theme.dart';
 import '../providers/auth_provider.dart';
+import '../providers/core_providers.dart';
 import '../providers/settings_provider.dart';
 import 'admin_upload_screen.dart';
 

@@ -18,7 +18,7 @@ class _MainShellState extends ConsumerState<MainShell> {
   final _pages = const [HomeScreen(), SearchScreen(), LibraryScreen(), ProfileScreen()];
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     return Scaffold(
       body: IndexedStack(index: _index, children: _pages),
       bottomNavigationBar: Column(
