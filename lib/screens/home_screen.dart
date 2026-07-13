@@ -10,6 +10,7 @@ import '../widgets/section_header.dart';
 import '../widgets/song_tile.dart';
 import 'player_screen.dart';
 import 'genre_screen.dart';
+import '../widgets/local_banner.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -47,15 +48,11 @@ class HomeScreen extends ConsumerWidget {
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
             ),
-            // Banner
-            SliverToBoxAdapter(
-              child: banners.when(
-                data: (list) => Padding(
-                  padding: const EdgeInsets.only(top: 8),
-                  child: BannerCarousel(banners: list),
-                ),
-                loading: () => const SizedBox(height: 150, child: Center(child: CircularProgressIndicator())),
-                error: (_, __) => const SizedBox.shrink(),
+            // Local promo banner (links to shad://l.shad.ir/TextStory)
+            const SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.only(top: 8),
+                child: LocalBanner(),
               ),
             ),
             // Genre cards (Iranian categories)

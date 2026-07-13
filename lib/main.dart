@@ -4,6 +4,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:just_audio_background/just_audio_background.dart';
+import 'package:in_app_update/in_app_update.dart';
 import 'core/constants.dart';
 import 'core/theme.dart';
 import 'providers/settings_provider.dart';
@@ -41,6 +42,22 @@ Future<void> main() async {
   }
 
   runApp(ProviderScope(child: HarmonyApp(supabaseReady: supabaseReady)));
+
+  // Check for in-app update (Android only)
+  _checkForUpdate();
+}
+
+Future<void> _checkForUpdate() async {
+  if (!kIsWeb) {
+    try {
+      final info = await InAppUpdate.checkForUpdate();
+      if (info.updateAvailability == UpdateAvailability.updateAvailable) {
+        await InAppUpdate.performImmediateUpdate();
+      }
+    } catch (e) {
+      debugPrint('In-app update check failed: $e');
+    }
+  }
 }
 
 class HarmonyApp extends ConsumerWidget {
