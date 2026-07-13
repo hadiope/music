@@ -119,6 +119,36 @@ if "subprojects {" not in s and "allprojects {" not in s:
 else:
     print("subprojects/allprojects block already present")
 
+# --- 4. Force compileSdk via gradle.properties (applies to ALL modules incl. plugins) ---
+PROPS = os.path.join(ROOT, "android", "gradle.properties")
+prop_lines = []
+if os.path.isfile(PROPS):
+    with open(PROPS, "r", encoding="utf-8") as f:
+        prop_lines = f.readlines()
+
+props_to_set = {
+    "android.compileSdk": "36",
+    "android.targetSdk": "36",
+    "android.minSdk": "23",
+}
+new_props = []
+existing_keys = set()
+for line in prop_lines:
+    key = line.split("=", 1)[0].strip()
+    existing_keys.add(key)
+    if key in props_to_set:
+        new_props.append(f"{key}={props_to_set[key]}\n")
+        del props_to_set[key]
+    else:
+        new_props.append(line)
+
+for k, v in props_to_set.items():
+    new_props.append(f"{k}={v}\n")
+
+with open(PROPS, "w", encoding="utf-8") as f:
+    f.writelines(new_props)
+print("gradle.properties: android.compileSdk=36, targetSdk=36, minSdk=23")
+
 with open(PATH, "w", encoding="utf-8") as f:
     f.write(s)
 
