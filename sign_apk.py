@@ -91,13 +91,10 @@ else:
 # we override it via a subprojects block appended to the app build file.
 force_block = (
     "\n"
-    "allprojects {\n"
-    "    tasks.withType<com.android.build.gradle.tasks.Aapt2Compile>() {}\n"
-    "}\n"
     "subprojects {\n"
     "    afterEvaluate {\n"
-    "        extensions.findByType<com.android.build.gradle.BaseExtension>()?.let {\n"
-    "            it.compileSdkVersion = 36\n"
+    "        extensions.findByType<com.android.build.api.dsl.CommonExtension>()?.let {\n"
+    "            it.compileSdk = 36\n"
     "            it.defaultConfig { minSdk = 23 }\n"
     "        }\n"
     "    }\n"
