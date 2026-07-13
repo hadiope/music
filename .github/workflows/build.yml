@@ -23,9 +23,8 @@ jobs:
         with:
           channel: 'stable'
 
-      # Build the Android platform files inside a temp empty dir, then copy them
-      # into our repo. This avoids `flutter create .` failing on an existing
-      # project layout.
+      # Generate the Android platform files (this creates android/ with a valid
+      # AndroidManifest.xml). We DO NOT ship our own android/ in the repo.
       - name: Generate Android platform files
         run: |
           set -e
@@ -33,15 +32,42 @@ jobs:
           cd "$TMP"
           flutter create --platforms=android --project-name iranian_spotify myapp
           cd myapp
-          # Copy generated android/ back into the checked-out repo
           cp -r android "$GITHUB_WORKSPACE/android"
           echo "android platform files copied"
+
+      # Copy the custom launcher icons into the freshly generated android/
+      - name: Apply custom app icon
+        run: |
+          set -e
+          ICONS=assets/icons
+          if [ -d "$ICONS" ]; then
+            # mipmap density folders
+            for d in mdpi hdpi xhdpi xxhdpi xxxhdpi; do
+              if [ -d "$ICONS/mipmap-$d" ]; then
+                mkdir -p "android/app/src/main/res/mipmap-$d"
+                cp -f "$ICONS/mipmap-$d/"* "android/app/src/main/res/mipmap-$d/" 2>/dev/null || true
+              fi
+            done
+            # adaptive icon xml (anydpi-v26)
+            mkdir -p "android/app/src/main/res/mipmap-anydpi-v26"
+            cp -f "$ICONS/mipmap-anydpi-v26/"* "android/app/src/main/res/mipmap-anydpi-v26/" 2>/dev/null || true
+            # background color
+            mkdir -p "android/app/src/main/res/values"
+            cp -f "$ICONS/ic_launcher_background.xml" "android/app/src/main/res/values/" 2>/dev/null || true
+            echo "icons applied"
+          else
+            echo "no assets/icons found, keeping default icon"
+          fi
 
       - name: Set app name to Iranian Spotify
         run: |
           MANIFEST=android/app/src/main/AndroidManifest.xml
-          sed -i 's/android:label="[^"]*"/android:label="Iranian Spotify"/' "$MANIFEST"
-          echo "label set"
+          if [ -f "$MANIFEST" ]; then
+            sed -i 's/android:label="[^"]*"/android:label="Iranian Spotify"/' "$MANIFEST"
+            echo "label set"
+          else
+            echo "Manifest not found, skipping label set"
+          fi
 
       - name: Set minSdkVersion to 23 (required by audio packages)
         run: |
