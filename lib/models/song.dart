@@ -8,6 +8,7 @@ class Song {
   final String? genre;
   final int plays;
   final int? durationMs;
+  final String? lyrics;
 
   Song({
     required this.id,
@@ -19,6 +20,7 @@ class Song {
     this.genre,
     this.plays = 0,
     this.durationMs,
+    this.lyrics,
   });
 
   factory Song.fromMap(Map<String, dynamic> m) => Song(
@@ -31,6 +33,7 @@ class Song {
         genre: m['genre'],
         plays: m['plays'] ?? 0,
         durationMs: m['duration_ms'],
+        lyrics: m['lyrics'],
       );
 
   Map<String, dynamic> toMap() => {
@@ -43,5 +46,6 @@ class Song {
         'genre': genre,
         'plays': plays,
         'duration_ms': durationMs,
+        'lyrics': lyrics,
       };
 }

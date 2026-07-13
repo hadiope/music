@@ -1,0 +1,3 @@
+# Supabase Edge Function config for the Telegram bot.
+[functions.telegram-bot]
+verify_jwt = false

@@ -68,6 +68,40 @@ class PlayerScreen extends ConsumerWidget {
                         'از اپ Iranian Spotify 🎧\nکانال ما: ${AppConstants.telegramChannel}',
                       ),
                     ),
+                    IconButton(
+                      icon: const Icon(Icons.lyrics_outlined),
+                      tooltip: 'متن آهنگ',
+                      onPressed: () => showModalBottomSheet(
+                        context: context,
+                        builder: (_) => DraggableScrollableSheet(
+                          initialChildSize: 0.6,
+                          maxChildSize: 0.9,
+                          builder: (_, ctrl) => Container(
+                            padding: const EdgeInsets.all(20),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(song.title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                                const SizedBox(height: 4),
+                                Text(song.artist, style: const TextStyle(color: Colors.grey)),
+                                const Divider(height: 20),
+                                Expanded(
+                                  child: SingleChildScrollView(
+                                    controller: ctrl,
+                                    child: Text(
+                                      (song.lyrics != null && song.lyrics!.isNotEmpty)
+                                          ? song.lyrics!
+                                          : 'متن آهنگی برای این آهنگ ثبت نشده است.',
+                                      style: const TextStyle(fontSize: 16, height: 1.6),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 16),
