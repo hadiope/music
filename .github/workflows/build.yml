@@ -90,7 +90,7 @@ jobs:
         run: |
           set -e
           cd android
-          ./gradlew assembleRelease --no-daemon --no-tree-shake-icons
+          ./gradlew assembleRelease --no-daemon
           cd ..
           APK=build/app/outputs/flutter-apk/app-release.apk
           ALT=android/app/build/outputs/apk/release/app-release.apk
