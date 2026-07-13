@@ -1,8 +1,15 @@
 #!/usr/bin/env python3
-"""Configure android/app build file for release:
-  - set compileSdk=36, targetSdk=36, minSdk=23 (required by file_picker etc.)
-  - inject a `release` signingConfig that points at the decoded keystore.
-  - force ALL subprojects (plugins) to compileSdk=36 via subprojects block.
+"""Configure android build files for release on CI.
+
+Fixes the recurring 'compileSdk 36 required' error from plugins like
+file_picker / flutter_plugin_android_lifecycle by FORCING every gradle
+module (including Flutter plugins, which live under the ROOT project) to
+compileSdk=36 via a `subprojects` block in the ROOT build file.
+
+Also:
+  - sets compileSdk=36/targetSdk=36/minSdk=23 in the app module
+  - injects a `release` signingConfig pointing at the decoded keystore
+  - sets android.compileSdk in gradle.properties as a belt-and-suspenders
 
 Supports both Groovy (build.gradle) and Kotlin (build.gradle.kts) DSLs.
 """
@@ -11,46 +18,45 @@ import re
 
 ROOT = os.environ.get("GITHUB_WORKSPACE", os.getcwd())
 APP_DIR = os.path.join(ROOT, "android", "app")
+ANDROID_DIR = os.path.join(ROOT, "android")
 
-KTS = os.path.join(APP_DIR, "build.gradle.kts")
-GRADLE = os.path.join(APP_DIR, "build.gradle")
 
-if os.path.isfile(KTS):
-    PATH = KTS
-    KTS_DSL = True
-elif os.path.isfile(GRADLE):
-    PATH = GRADLE
-    KTS_DSL = False
-else:
-    print("ERROR: no android/app/build.gradle(.kts) found")
-    raise SystemExit(1)
+def dsl_of(path):
+    return path.endswith(".kts")
 
-with open(PATH, "r", encoding="utf-8") as f:
-    s = f.read()
 
-# --- 1. SDK versions ---
-if KTS_DSL:
-    s = re.sub(r"compileSdk\s*=.*", "compileSdk = 36", s)
-    s = re.sub(r"targetSdk\s*=.*", "targetSdk = 36", s)
-    s = re.sub(r"minSdk\s*=.*", "minSdk = 23", s)
-else:
-    s = re.sub(r"compileSdkVersion\s+.*", "compileSdkVersion 36", s)
-    s = re.sub(r"targetSdkVersion\s+.*", "targetSdkVersion 36", s)
-    s = re.sub(r"minSdkVersion\s+.*", "minSdkVersion 23", s)
-
-print("SDK set: compileSdk=36, targetSdk=36, minSdk=23")
-
-# --- 2. Signing config ---
-pw = os.environ.get("KEYSTORE_PASSWORD", "")
-alias = os.environ.get("KEY_ALIAS", "")
-if not pw or not alias:
-    print("KEYSTORE_PASSWORD/KEY_ALIAS missing; skipping signing injection")
-else:
-    if "signingConfigs" in s:
-        print("signingConfigs already present")
+def patch_app_module():
+    """Set SDK versions + signing in android/app/build.gradle(.kts)."""
+    kts = os.path.join(APP_DIR, "build.gradle.kts")
+    gradle = os.path.join(APP_DIR, "build.gradle")
+    if os.path.isfile(kts):
+        PATH, KTS = kts, True
+    elif os.path.isfile(gradle):
+        PATH, KTS = gradle, False
     else:
-        if KTS_DSL:
-            signing_block = (
+        print("WARN: no android/app/build.gradle(.kts) found")
+        return
+
+    with open(PATH, "r", encoding="utf-8") as f:
+        s = f.read()
+
+    # SDK versions
+    if KTS:
+        s = re.sub(r"compileSdk\s*=.*", "compileSdk = 36", s)
+        s = re.sub(r"targetSdk\s*=.*", "targetSdk = 36", s)
+        s = re.sub(r"minSdk\s*=.*", "minSdk = 23", s)
+    else:
+        s = re.sub(r"compileSdkVersion\s+.*", "compileSdkVersion 36", s)
+        s = re.sub(r"targetSdkVersion\s+.*", "targetSdkVersion 36", s)
+        s = re.sub(r"minSdkVersion\s+.*", "minSdkVersion 23", s)
+    print("app module: compileSdk=36, targetSdk=36, minSdk=23")
+
+    # Signing
+    pw = os.environ.get("KEYSTORE_PASSWORD", "")
+    alias = os.environ.get("KEY_ALIAS", "")
+    if pw and alias and "signingConfigs" not in s:
+        if KTS:
+            block = (
                 "\n    signingConfigs {\n"
                 "        create(\"release\") {\n"
                 '            keyAlias = "%s"\n' % alias +
@@ -60,14 +66,14 @@ else:
                 "        }\n"
                 "    }\n"
             )
-            s = s.replace("android {", "android {" + signing_block, 1)
+            s = s.replace("android {", "android {" + block, 1)
             s = s.replace(
                 "buildTypes {\n        release {",
                 "buildTypes {\n        release {\n            signingConfig = signingConfigs.getByName(\"release\")",
                 1,
             )
         else:
-            signing_block = (
+            block = (
                 "\n    signingConfigs {\n"
                 "        release {\n"
                 '            keyAlias = "%s"\n' % alias +
@@ -77,82 +83,87 @@ else:
                 "        }\n"
                 "    }\n"
             )
-            s = s.replace("android {", "android {" + signing_block, 1)
+            s = s.replace("android {", "android {" + block, 1)
             s = s.replace(
                 "buildTypes {\n        release {",
                 "buildTypes {\n        release {\n            signingConfig signingConfigs.release",
                 1,
             )
-        print("signing injected")
+        print("app module: signing injected")
 
-# --- 3. Force ALL subprojects (plugins like file_picker) to compileSdk 36 ---
-if KTS_DSL:
-    force_block = (
-        "\n"
-        "subprojects {\n"
-        "    afterEvaluate {\n"
-        "        extensions.findByType<com.android.build.api.dsl.CommonExtension>()?.let {\n"
-        "            it.compileSdk = 36\n"
-        "            it.defaultConfig.minSdk = 23\n"
-        "        }\n"
-        "    }\n"
-        "}\n"
-    )
-else:
-    force_block = (
-        "\n"
-        "allprojects {\n"
-        "    afterEvaluate { project ->\n"
-        "        if (project.hasProperty('android')) {\n"
-        "            project.android {\n"
-        "                compileSdkVersion 36\n"
-        "                defaultConfig { minSdkVersion 23 }\n"
-        "            }\n"
-        "        }\n"
-        "    }\n"
-        "}\n"
-    )
+    with open(PATH, "w", encoding="utf-8") as f:
+        f.write(s)
 
-if "subprojects {" not in s and "allprojects {" not in s:
-    s += force_block
-    print("forced subprojects compileSdk=36")
-else:
-    print("subprojects/allprojects block already present")
 
-# --- 4. Force compileSdk via gradle.properties (applies to ALL modules incl. plugins) ---
-PROPS = os.path.join(ROOT, "android", "gradle.properties")
-prop_lines = []
-if os.path.isfile(PROPS):
+def force_root_subprojects():
+    """Add a subprojects block to the ROOT android/build.gradle(.kts) so every
+    plugin module (file_picker, lifecycle, ...) is forced to compileSdk 36."""
+    for fname in ("build.gradle.kts", "build.gradle"):
+        PATH = os.path.join(ANDROID_DIR, fname)
+        if not os.path.isfile(PATH):
+            continue
+        KTS = dsl_of(PATH)
+        with open(PATH, "r", encoding="utf-8") as f:
+            s = f.read()
+        if "subprojects {" in s:
+            print("root: subprojects block already present")
+            return
+        if KTS:
+            block = (
+                "\nsubprojects {\n"
+                "    afterEvaluate {\n"
+                "        if (project.hasProperty(\"android\")) {\n"
+                "            project.android {\n"
+                "                compileSdk = 36\n"
+                "            }\n"
+                "        }\n"
+                "    }\n"
+                "}\n"
+            )
+        else:
+            block = (
+                "\nsubprojects {\n"
+                "    afterEvaluate { project ->\n"
+                "        if (project.hasProperty('android')) {\n"
+                "            project.android {\n"
+                "                compileSdkVersion 36\n"
+                "            }\n"
+                "        }\n"
+                "    }\n"
+                "}\n"
+            )
+        s += block
+        with open(PATH, "w", encoding="utf-8") as f:
+            f.write(s)
+        print("root: forced subprojects compileSdk=36 (via %s)" % fname)
+        return
+    print("WARN: no root android/build.gradle(.kts) found")
+
+
+def patch_gradle_properties():
+    PROPS = os.path.join(ANDROID_DIR, "gradle.properties")
+    if not os.path.isfile(PROPS):
+        return
     with open(PROPS, "r", encoding="utf-8") as f:
-        prop_lines = f.readlines()
+        lines = f.readlines()
+    want = {"android.compileSdk": "36", "android.targetSdk": "36", "android.minSdk": "23"}
+    out = []
+    for line in lines:
+        key = line.split("=", 1)[0].strip()
+        if key in want:
+            out.append("%s=%s\n" % (key, want[key]))
+            del want[key]
+        else:
+            out.append(line)
+    for k, v in want.items():
+        out.append("%s=%s\n" % (k, v))
+    with open(PROPS, "w", encoding="utf-8") as f:
+        f.writelines(out)
+    print("gradle.properties: android.compileSdk=36, targetSdk=36, minSdk=23")
 
-props_to_set = {
-    "android.compileSdk": "36",
-    "android.targetSdk": "36",
-    "android.minSdk": "23",
-}
-new_props = []
-existing_keys = set()
-for line in prop_lines:
-    key = line.split("=", 1)[0].strip()
-    existing_keys.add(key)
-    if key in props_to_set:
-        new_props.append(f"{key}={props_to_set[key]}\n")
-        del props_to_set[key]
-    else:
-        new_props.append(line)
 
-for k, v in props_to_set.items():
-    new_props.append(f"{k}={v}\n")
-
-with open(PROPS, "w", encoding="utf-8") as f:
-    f.writelines(new_props)
-print("gradle.properties: android.compileSdk=36, targetSdk=36, minSdk=23")
-
-with open(PATH, "w", encoding="utf-8") as f:
-    f.write(s)
-
-# echo the relevant lines for debug
-for line in s.splitlines():
-    if re.search(r"compileSdk|targetSdk|minSdk|signingConfig|signingConfigs", line):
-        print("  ->", line.strip())
+if __name__ == "__main__":
+    patch_app_module()
+    force_root_subprojects()
+    patch_gradle_properties()
+    print("DONE_CONFIG")
