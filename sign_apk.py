@@ -97,48 +97,37 @@ def patch_app_module():
 
 def force_root_subprojects():
     """Add a correct subprojects block to the ROOT android/build.gradle(.kts).
-    If an old/invalid subprojects block is present, remove it first."""
-    for fname in ("build.gradle.kts", "build.gradle"):
-        PATH = os.path.join(ANDROID_DIR, fname)
-        if not os.path.isfile(PATH):
-            continue
-        KTS = dsl_of(PATH)
-        with open(PATH, "r", encoding="utf-8") as f:
-            s = f.read()
+    Flutter 3.44 generates the root file as Kotlin DSL (.kts), so we always
+    emit Kotlin syntax there (the `android` extension reference works in both
+    app and plugin modules). If an old/invalid block exists, remove it first."""
+    PATH = os.path.join(ANDROID_DIR, "build.gradle.kts")
+    if not os.path.isfile(PATH):
+        PATH = os.path.join(ANDROID_DIR, "build.gradle")
+    with open(PATH, "r", encoding="utf-8") as f:
+        s = f.read()
 
-        # Remove any pre-existing subprojects {...} block (invalid one from earlier runs)
-        s = re.sub(r"\nsubprojects\s*\{.*?\n\}\n", "\n", s, flags=re.DOTALL)
+    # Remove any pre-existing subprojects {...} block (invalid one from earlier runs)
+    s = re.sub(r"\nsubprojects\s*\{.*?\n\}\n", "\n", s, flags=re.DOTALL)
 
-        if KTS:
-            block = (
-                "\nsubprojects {\n"
-                "    afterEvaluate {\n"
-                "        if (project.hasProperty(\"android\")) {\n"
-                "            project.android {\n"
-                "                compileSdk = 36\n"
-                "            }\n"
-                "        }\n"
-                "    }\n"
-                "}\n"
-            )
-        else:
-            block = (
-                "\nsubprojects {\n"
-                "    afterEvaluate { project ->\n"
-                "        if (project.hasProperty('android')) {\n"
-                "            project.android {\n"
-                "                compileSdkVersion 36\n"
-                "            }\n"
-                "        }\n"
-                "    }\n"
-                "}\n"
-            )
-        s = s.rstrip() + "\n" + block
-        with open(PATH, "w", encoding="utf-8") as f:
-            f.write(s)
-        print("root: forced subprojects compileSdk=36 (via %s)" % fname)
-        return
-    print("WARN: no root android/build.gradle(.kts) found")
+    # Kotlin DSL block (root is always .kts in modern Flutter)
+    block = (
+        "\nsubprojects {\n"
+        "    afterEvaluate {\n"
+        "        if (project.hasProperty(\"android\")) {\n"
+        "            project.android {\n"
+        "                compileSdk = 36\n"
+        "                defaultConfig {\n"
+        "                    minSdk = 23\n"
+        "                }\n"
+        "            }\n"
+        "        }\n"
+        "    }\n"
+        "}\n"
+    )
+    s = s.rstrip() + "\n" + block
+    with open(PATH, "w", encoding="utf-8") as f:
+        f.write(s)
+    print("root: forced subprojects compileSdk=36 (via %s)" % os.path.basename(PATH))
 
 
 def patch_gradle_properties():
