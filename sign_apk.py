@@ -96,34 +96,50 @@ def patch_app_module():
 
 
 def force_root_subprojects():
-    """Add a correct subprojects block to the ROOT android/build.gradle(.kts).
-    Flutter 3.44 generates the root file as Kotlin DSL (.kts), so we always
-    emit Kotlin syntax there (the `android` extension reference works in both
-    app and plugin modules). If an old/invalid block exists, remove it first."""
-    PATH = os.path.join(ANDROID_DIR, "build.gradle.kts")
-    if not os.path.isfile(PATH):
-        PATH = os.path.join(ANDROID_DIR, "build.gradle")
+    """Force every subproject (including Flutter plugins) to compileSdk=36 by
+    adding a subprojects block to the ROOT android/build.gradle(.kts).
+
+    In Kotlin DSL the `android` accessor is not statically available inside a
+    subprojects block, so we resolve it via extensions.findByName + a cast.
+    If an old/invalid block exists, remove it first."""
+    kts = os.path.join(ANDROID_DIR, "build.gradle.kts")
+    gradle = os.path.join(ANDROID_DIR, "build.gradle")
+    if os.path.isfile(kts):
+        PATH, KTS = kts, True
+    elif os.path.isfile(gradle):
+        PATH, KTS = gradle, False
+    else:
+        print("WARN: no root android/build.gradle(.kts) found")
+        return
+
     with open(PATH, "r", encoding="utf-8") as f:
         s = f.read()
 
     # Remove any pre-existing subprojects {...} block (invalid one from earlier runs)
     s = re.sub(r"\nsubprojects\s*\{.*?\n\}\n", "\n", s, flags=re.DOTALL)
 
-    # Kotlin DSL block (root is always .kts in modern Flutter)
-    block = (
-        "\nsubprojects {\n"
-        "    afterEvaluate {\n"
-        "        if (project.hasProperty(\"android\")) {\n"
-        "            project.android {\n"
-        "                compileSdk = 36\n"
-        "                defaultConfig {\n"
-        "                    minSdk = 23\n"
-        "                }\n"
-        "            }\n"
-        "        }\n"
-        "    }\n"
-        "}\n"
-    )
+    if KTS:
+        block = (
+            "\nsubprojects {\n"
+            "    afterEvaluate {\n"
+            "        (extensions.findByName(\"android\") as? com.android.build.api.dsl.CommonExtension)?.let {\n"
+            "            it.compileSdk = 36\n"
+            "        }\n"
+            "    }\n"
+            "}\n"
+        )
+    else:
+        block = (
+            "\nsubprojects {\n"
+            "    afterEvaluate { project ->\n"
+            "        if (project.hasProperty('android')) {\n"
+            "            project.android {\n"
+            "                compileSdkVersion 36\n"
+            "            }\n"
+            "        }\n"
+            "    }\n"
+            "}\n"
+        )
     s = s.rstrip() + "\n" + block
     with open(PATH, "w", encoding="utf-8") as f:
         f.write(s)
