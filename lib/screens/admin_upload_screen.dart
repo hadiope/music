@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../core/genres.dart';
+import '../core/theme.dart';
 
 /// Admin panel: upload a song (audio + cover) to Supabase Storage and add a row to `songs`.
 class AdminUploadScreen extends ConsumerStatefulWidget {
