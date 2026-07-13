@@ -23,17 +23,24 @@ jobs:
         with:
           channel: 'stable'
 
-      # Create the Android/iOS platform folders. The project already has lib/,
-      # so we let Flutter merge into the existing directory.
-      - name: Create platform folders
-        run: flutter create --platforms=android .
+      # Build the Android platform files inside a temp empty dir, then copy them
+      # into our repo. This avoids `flutter create .` failing on an existing
+      # project layout.
+      - name: Generate Android platform files
+        run: |
+          set -e
+          TMP=$(mktemp -d)
+          cd "$TMP"
+          flutter create --platforms=android --project-name iranian_spotify myapp
+          cd myapp
+          # Copy generated android/ back into the checked-out repo
+          cp -r android "$GITHUB_WORKSPACE/android"
+          echo "android platform files copied"
 
       - name: Set app name to Iranian Spotify
         run: |
           MANIFEST=android/app/src/main/AndroidManifest.xml
-          if [ -f "$MANIFEST" ]; then
-            sed -i 's/android:label="[^"]*"/android:label="Iranian Spotify"/' "$MANIFEST"
-          fi
+          sed -i 's/android:label="[^"]*"/android:label="Iranian Spotify"/' "$MANIFEST"
           echo "label set"
 
       - name: Set minSdkVersion to 23 (required by audio packages)
