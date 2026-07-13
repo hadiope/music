@@ -1,7 +1,7 @@
 class GenreItem {
   final String name;
   final String imageUrl;
-  GenreItem(this.name, this.imageUrl);
+  const GenreItem(this.name, this.imageUrl);
 }
 
 /// Iranian music categories with representative cover images.
