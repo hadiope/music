@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Configure android build for release on CI.
 
-1. app module: compileSdk=36, targetSdk=36, minSdk=23 + release signing
+1. app module: compileSdk=36, targetSdk=36, minSdk=24 + release signing
 2. ROOT build.gradle(.kts): append a subprojects block that forces every
    plugin module (file_picker, lifecycle, ...) to compileSdk=36. This is
    required because those plugins are pre-compiled against android-34 and
@@ -38,12 +38,12 @@ def patch_app_module():
     if KTS:
         s = re.sub(r"compileSdk\s*=.*", "compileSdk = 36", s)
         s = re.sub(r"targetSdk\s*=.*", "targetSdk = 36", s)
-        s = re.sub(r"minSdk\s*=.*", "minSdk = 23", s)
+        s = re.sub(r"minSdk\s*=.*", "minSdk = 24", s)
     else:
         s = re.sub(r"compileSdkVersion\s+.*", "compileSdkVersion 36", s)
         s = re.sub(r"targetSdkVersion\s+.*", "targetSdkVersion 36", s)
-        s = re.sub(r"minSdkVersion\s+.*", "minSdkVersion 23", s)
-    print("app module: compileSdk=36, targetSdk=36, minSdk=23")
+        s = re.sub(r"minSdkVersion\s+.*", "minSdkVersion 24", s)
+    print("app module: compileSdk=36, targetSdk=36, minSdk=24")
 
     pw = os.environ.get("KEYSTORE_PASSWORD", "")
     alias = os.environ.get("KEY_ALIAS", "")
@@ -143,7 +143,7 @@ def patch_gradle_properties():
         return
     with open(PROPS, "r", encoding="utf-8") as f:
         lines = f.readlines()
-    want = {"android.compileSdk": "36", "android.targetSdk": "36", "android.minSdk": "23"}
+    want = {"android.compileSdk": "36", "android.targetSdk": "36", "android.minSdk": "24"}
     out = []
     for line in lines:
         key = line.split("=", 1)[0].strip()
@@ -156,7 +156,7 @@ def patch_gradle_properties():
         out.append("%s=%s\n" % (k, v))
     with open(PROPS, "w", encoding="utf-8") as f:
         f.writelines(out)
-    print("gradle.properties: android.compileSdk=36, targetSdk=36, minSdk=23")
+    print("gradle.properties: android.compileSdk=36, targetSdk=36, minSdk=24")
 
 
 if __name__ == "__main__":
