@@ -53,10 +53,9 @@ jobs:
                 cp -f "$ICONS/mipmap-$d/"* "android/app/src/main/res/mipmap-$d/" 2>/dev/null || true
               fi
             done
-            mkdir -p "android/app/src/main/res/mipmap-anydpi-v26"
-            cp -f "$ICONS/mipmap-anydpi-v26/"* "android/app/src/main/res/mipmap-anydpi-v26/" 2>/dev/null || true
-            mkdir -p "android/app/src/main/res/values"
-            cp -f "$ICONS/ic_launcher_background.xml" "android/app/src/main/res/values/" 2>/dev/null || true
+            # Remove any leftover adaptive-icon XML that references a missing drawable
+            rm -f android/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml 2>/dev/null || true
+            rm -f android/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml 2>/dev/null || true
             echo "icons applied"
           else
             echo "no assets/icons found, keeping default icon"
