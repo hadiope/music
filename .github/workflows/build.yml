@@ -8,6 +8,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -105,8 +107,23 @@ jobs:
             exit 1
           fi
 
-      - name: Upload APK
+      - name: Upload APK (artifact)
         uses: actions/upload-artifact@v4
         with:
           name: iranian-spotify-apk
           path: build/app/outputs/flutter-apk/app-release.apk
+
+      # Publish the APK as a GitHub Release asset so it can be downloaded
+      # directly from a phone browser WITHOUT logging in (public repo).
+      - name: Publish APK to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: Iranian Spotify - Latest APK
+          body: |
+            آخرین نسخه‌ی اپلیکیشن Iranian Spotify
+            فایل app-release.apk رو دانلود و نصب کن.
+          files: build/app/outputs/flutter-apk/app-release.apk
+          fail_on_unmatched_files: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
