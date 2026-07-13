@@ -3,7 +3,7 @@ name: Build Android APK
 on:
   push:
     branches: [ main, master ]
-  workflow_dispatch:   # دکمه اجرای دستی از تب Actions
+  workflow_dispatch:
 
 jobs:
   build:
@@ -30,18 +30,20 @@ jobs:
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > /tmp/harmony_release.keystore
           echo "keystore decoded: $(ls -la /tmp/harmony_release.keystore | awk '{print $5}') bytes"
 
-      # Generate the Android platform files (creates android/ with a valid Manifest)
+      # Generate the Android platform files IN PLACE (keeps correct namespace from pubspec)
       - name: Generate Android platform files
         run: |
           set -e
-          TMP=$(mktemp -d)
-          cd "$TMP"
-          flutter create --platforms=android --project-name iranian_spotify myapp
-          cd myapp
-          cp -r android "$GITHUB_WORKSPACE/android"
-          echo "android platform files copied"
+          flutter create --platforms=android .
 
-      # Copy the custom launcher icons into the freshly generated android/
+      # Accept Android SDK licenses + ensure platform is installed
+      - name: Accept SDK licenses and install platform
+        run: |
+          set -e
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platforms;android-35"
+
+      # Copy custom launcher icons (no adaptive XML — avoids AAPT missing-drawable errors)
       - name: Apply custom app icon
         run: |
           set -e
@@ -53,7 +55,6 @@ jobs:
                 cp -f "$ICONS/mipmap-$d/"* "android/app/src/main/res/mipmap-$d/" 2>/dev/null || true
               fi
             done
-            # Remove any leftover adaptive-icon XML that references a missing drawable
             rm -f android/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml 2>/dev/null || true
             rm -f android/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml 2>/dev/null || true
             echo "icons applied"
@@ -61,22 +62,19 @@ jobs:
             echo "no assets/icons found, keeping default icon"
           fi
 
-      - name: Set app name to Iranian Spotify
+      # Merge required manifest entries (permissions + audio_service) from reference file
+      - name: Merge manifest permissions
         run: |
-          MANIFEST=android/app/src/main/AndroidManifest.xml
-          if [ -f "$MANIFEST" ]; then
-            sed -i 's/android:label="[^"]*"/android:label="Iranian Spotify"/' "$MANIFEST"
-            echo "label set"
-          else
-            echo "Manifest not found, skipping label set"
-          fi
+          set -e
+          python3 .github/workflows/merge_manifest.py
 
+      # Set SDK versions + inject signing
       - name: Set SDK versions + inject signing
         env:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
         run: |
-          python3 "$GITHUB_WORKSPACE/sign_apk.py"
+          python3 .github/workflows/sign_apk.py
           echo "configured"
 
       - name: Get dependencies
