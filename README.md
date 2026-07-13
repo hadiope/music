@@ -1,4 +1,4 @@
-# 🎧 Harmony Music — اپ موزیک استریمینگ (Flutter + Supabase)
+# 🎧 Iranian Spotify — اپ موزیک استریمینگ (Flutter + Supabase)
 
 یه اپلیکیشن موزیک حرفه‌ای شبیه Spotify، ساخته‌شده با **Flutter** و بک‌اند **Supabase**.
 

@@ -55,7 +55,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
               children: [
                 const Icon(Icons.graphic_eq, size: 64, color: AppColors.primary),
                 const SizedBox(height: 12),
-                const Text('Harmony Music', textAlign: TextAlign.center,
+                const Text('Iranian Spotify', textAlign: TextAlign.center,
                     style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 6),
                 Text(_isLogin ? 'ورود به حساب' : 'ساخت حساب جدید',

@@ -77,7 +77,7 @@ class PlayerScreen extends ConsumerWidget {
                       icon: const Icon(Icons.share),
                       onPressed: () => Share.share(
                         'به این آهنگ گوش بده: ${song.title} - ${song.artist}\n'
-                        'از اپ Harmony Music 🎧\nکانال ما: ${AppConstants.telegramChannel}',
+                        'از اپ Iranian Spotify 🎧\nکانال ما: ${AppConstants.telegramChannel}',
                       ),
                     ),
                   ],
