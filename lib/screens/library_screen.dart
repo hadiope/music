@@ -14,6 +14,7 @@ class LibraryScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(tProvider); // sync language
     final liked = ref.watch(likedSongsProvider);
     final history = ref.watch(historyProvider);
     final playlists = ref.watch(playlistsProvider);

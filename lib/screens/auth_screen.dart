@@ -99,10 +99,10 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                   Hero(
                     tag: 'appIcon',
                     child: Container(
-                      width: 96,
-                      height: 96,
+                      width: 110,
+                      height: 110,
                       decoration: BoxDecoration(
-                        shape: BoxShape.circle,
+                        borderRadius: BorderRadius.circular(24),
                         boxShadow: [
                           BoxShadow(
                             color: AppColors.primary.withOpacity(0.4),
@@ -111,8 +111,8 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                           ),
                         ],
                         image: const DecorationImage(
-                          image: AssetImage('assets/images/app_icon_fg.png'),
-                          fit: BoxFit.cover,
+                          image: AssetImage('assets/images/login_logo.png'),
+                          fit: BoxFit.contain,
                         ),
                       ),
                     ),

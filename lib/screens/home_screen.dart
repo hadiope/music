@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../core/greetings.dart';
 import '../core/genres.dart';
+import '../core/strings.dart';
 import '../widgets/net_image.dart';
 import '../providers/songs_provider.dart';
 import '../providers/player_provider.dart';
@@ -28,6 +29,7 @@ class HomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(tProvider); // sync language
     final newReleases = ref.watch(newReleasesProvider);
     final popular = ref.watch(popularProvider);
     final user = _userName();
@@ -57,7 +59,7 @@ class HomeScreen extends ConsumerWidget {
             ),
             // Genre cards (Iranian categories)
             SliverToBoxAdapter(
-              child: const SectionHeader(title: 'دسته‌بندی‌ها 🎭'),
+              child: SectionHeader(title: T.categories),
             ),
             SliverToBoxAdapter(
               child: SizedBox(

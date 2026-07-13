@@ -66,7 +66,7 @@ class AuthController {
       return;
     }
     // Native flow — Google Web Client ID (from Google Cloud Console, Web Application type)
-    const webClientId = '923347201603-7bporr7dd0hq45a19unoang281dd6a2n.apps.googleusercontent.com';
+    const webClientId = '923347201603-bfkr04a0rur53oatp498ntnvv8btssed.apps.googleusercontent.com';
     final google = GoogleSignIn(serverClientId: webClientId);
     final account = await google.signIn();
     if (account == null) return;

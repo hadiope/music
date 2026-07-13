@@ -18,7 +18,8 @@ class _MainShellState extends ConsumerState<MainShell> {
   final _pages = const [HomeScreen(), SearchScreen(), LibraryScreen(), ProfileScreen()];
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(tProvider); // keep T in sync with locale
     return Scaffold(
       body: IndexedStack(index: _index, children: _pages),
       bottomNavigationBar: Column(

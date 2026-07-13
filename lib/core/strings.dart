@@ -2,16 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/settings_provider.dart';
 
-/// Lightweight i18n. Each string has a fa + en value. Switches on the
-/// current locale so the whole UI flips language instantly.
+/// Lightweight i18n. Each string has a fa + en value. The provider below
+/// watches the locale and keeps T in sync so the whole UI flips instantly.
 class T {
   T._();
-  static String tr(String fa, String en) =>
-      _locale == 'en' ? en : fa;
+  static String tr(String fa, String en) => _locale == 'en' ? en : fa;
 
   static String get localeCode => _locale;
   static String _locale = 'fa';
-
   static void setLocale(String code) => _locale = code;
 
   // --- common ---
@@ -53,9 +51,13 @@ class T {
   static String get createAccount => tr('حساب جدید بساز', 'Create account');
   static String get alreadyHave => tr('قبلاً ثبت‌نام کردی؟ وارد شو', 'Have an account? Log in');
   static String get noAccount => tr('حساب نداری؟ همین‌جا بساز', "Don't have an account? Sign up");
+  static String get categories => tr('دسته‌بندی‌ها 🎭', 'Categories 🎭');
 }
 
-/// Call once at app start (and on locale change) so T reads the right language.
-void syncLocale(WidgetRef ref) {
-  T.setLocale(ref.read(localeProvider).languageCode);
-}
+/// Watches the locale and keeps T in sync. Watch this in screens that use T
+/// so they rebuild when the language changes.
+final tProvider = Provider<T>((ref) {
+  final code = ref.watch(localeProvider).languageCode;
+  T.setLocale(code);
+  return T();
+});

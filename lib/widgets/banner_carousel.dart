@@ -38,11 +38,10 @@ class _BannerCarouselState extends State<BannerCarousel> {
                 onTap: () async {
                   final link = b.link;
                   if (link != null && link.isNotEmpty) {
-                    // Normalize: shad:// -> https:// so external apps can open it
-                    final normalized = link.startsWith('shad://')
+                    // Normalize shad:// to https so external apps / browser handle it
+                    final uri = Uri.parse(link.startsWith('shad://')
                         ? link.replaceFirst('shad://', 'https://')
-                        : link;
-                    final uri = Uri.parse(normalized);
+                        : link);
                     if (await canLaunchUrl(uri)) {
                       await launchUrl(uri, mode: LaunchMode.externalApplication);
                     }

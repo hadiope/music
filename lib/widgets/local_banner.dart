@@ -5,19 +5,18 @@ import 'package:url_launcher/url_launcher.dart';
 class LocalBanner extends StatelessWidget {
   const LocalBanner({super.key});
 
-  static const String _link = 'https://l.shad.ir/TextStory';
+  static const String _link = 'shad://l.shad.ir/TextStory';
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () async {
-        final uri = Uri.parse(_link);
+        // shad:// is proprietary; open via https so a browser/site can handle it
+        final uri = Uri.parse(_link.startsWith('shad://')
+            ? _link.replaceFirst('shad://', 'https://')
+            : _link);
         if (await canLaunchUrl(uri)) {
           await launchUrl(uri, mode: LaunchMode.externalApplication);
-        } else {
-          // Fallback to https if shad:// not handled
-          final web = Uri.parse('https://l.shad.ir/TextStory');
-          if (await canLaunchUrl(web)) await launchUrl(web, mode: LaunchMode.externalApplication);
         }
       },
       child: Padding(

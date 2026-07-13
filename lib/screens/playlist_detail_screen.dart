@@ -1,3 +1,4 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/playlist.dart';
@@ -6,6 +7,7 @@ import '../providers/songs_provider.dart';
 import '../providers/player_provider.dart';
 import '../widgets/song_tile.dart';
 import 'player_screen.dart';
+import 'local_songs_screen.dart';
 
 class PlaylistDetailScreen extends ConsumerWidget {
   final Playlist playlist;
@@ -20,16 +22,34 @@ class PlaylistDetailScreen extends ConsumerWidget {
         children: [
           Padding(
             padding: const EdgeInsets.all(12),
-            child: FilledButton.icon(
-              onPressed: () => _addSongs(context, ref),
-              icon: const Icon(Icons.add),
-              label: const Text('اضافه کردن آهنگ از برنامه'),
+            child: Row(
+              children: [
+                Expanded(
+                  child: FilledButton.icon(
+                    onPressed: () => _addFromApp(context, ref),
+                    icon: const Icon(Icons.music_note),
+                    label: const Text('از برنامه'),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () => _addFromDevice(context, ref),
+                    icon: const Icon(Icons.folder_open),
+                    label: const Text('از گوشی'),
+                  ),
+                ),
+              ],
             ),
           ),
           Expanded(
             child: songs.when(
               data: (list) {
-                if (list.isEmpty) return const Center(child: Text('آهنگی ندارد، از بالا اضافه کن'));
+                if (list.isEmpty) {
+                  return const Center(
+                    child: Text('آهنگی ندارد، از بالا اضافه کن'),
+                  );
+                }
                 return ListView.builder(
                   itemCount: list.length,
                   itemBuilder: (_, i) => SongTile(
@@ -50,7 +70,7 @@ class PlaylistDetailScreen extends ConsumerWidget {
     );
   }
 
-  void _addSongs(BuildContext context, WidgetRef ref) async {
+  void _addFromApp(BuildContext context, WidgetRef ref) async {
     final all = await ref.read(allSongsProvider.future);
     if (!context.mounted) return;
     showModalBottomSheet(
@@ -67,5 +87,23 @@ class PlaylistDetailScreen extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  void _addFromDevice(BuildContext context, WidgetRef ref) async {
+    final res = await FilePicker.platform.pickFiles(
+      type: FileType.audio,
+      allowMultiple: false,
+      withData: false,
+    );
+    if (res != null && res.files.firstOrNull?.path != null) {
+      final path = res.files.first.path!;
+      // Play locally (no upload) — added to this playlist's local queue
+      ref.read(audioHandlerProvider).playLocalFile(path, title: res.files.first.name);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('در حال پخش: ${res.files.first.name}')),
+        );
+      }
+    }
   }
 }

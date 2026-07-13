@@ -87,7 +87,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(tProvider); // sync language
     final user = ref.watch(currentUserProvider);
     final themeMode = ref.watch(themeProvider);
     final locale = ref.watch(localeProvider);
