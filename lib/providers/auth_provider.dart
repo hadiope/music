@@ -26,6 +26,7 @@ class AuthController {
       return;
     }
     // Native flow
+    // TODO(dadash): Put your Google Web Client ID here (from Google Cloud Console).
     const webClientId = 'YOUR_GOOGLE_WEB_CLIENT_ID';
     final google = GoogleSignIn(serverClientId: webClientId);
     final account = await google.signIn();

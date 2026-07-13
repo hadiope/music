@@ -59,7 +59,7 @@ class HarmonyApp extends ConsumerWidget {
       darkTheme: AppTheme.dark(),
       themeMode: themeMode,
       locale: locale,
-      supportedLocales: const [Locale('fa'), Locale('en')],
+      supportedLocales: const [Locale('fa')],
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,

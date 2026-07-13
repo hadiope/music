@@ -28,6 +28,11 @@ final bannersProvider = FutureProvider<List<m.Banner>>((ref) async {
   return ref.watch(databaseProvider).getBanners();
 });
 
+/// Songs by genre.
+final genreSongsProvider = FutureProvider.family<List<Song>, String>((ref, genre) async {
+  return ref.watch(databaseProvider).getByGenre(genre);
+});
+
 /// Search query + results.
 final searchQueryProvider = StateProvider<String>((ref) => '');
 

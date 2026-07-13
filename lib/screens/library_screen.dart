@@ -5,6 +5,7 @@ import '../providers/playlist_provider.dart';
 import '../providers/player_provider.dart';
 import '../widgets/song_tile.dart';
 import 'player_screen.dart';
+import 'playlist_detail_screen.dart';
 
 class LibraryScreen extends ConsumerWidget {
   const LibraryScreen({super.key});
@@ -27,7 +28,8 @@ class LibraryScreen extends ConsumerWidget {
           ]),
           actions: [
             IconButton(
-              icon: const Icon(Icons.add),
+              icon: const Icon(Icons.add_circle_outline),
+              tooltip: 'ساخت پلی‌لیست',
               onPressed: () => _createPlaylistDialog(context, ref),
             ),
           ],
@@ -37,12 +39,29 @@ class LibraryScreen extends ConsumerWidget {
             _songList(context, ref, liked),
             playlists.when(
               data: (list) => list.isEmpty
-                  ? const Center(child: Text('پلی‌لیستی نساختی'))
+                  ? Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Text('پلی‌لیستی نداری'),
+                          TextButton.icon(
+                            onPressed: () => _createPlaylistDialog(context, ref),
+                            icon: const Icon(Icons.add),
+                            label: const Text('بساز اولین پلی‌لیست'),
+                          ),
+                        ],
+                      ),
+                    )
                   : ListView.builder(
                       itemCount: list.length,
                       itemBuilder: (_, i) => ListTile(
-                        leading: const Icon(Icons.queue_music),
+                        leading: const CircleAvatar(child: Icon(Icons.queue_music)),
                         title: Text(list[i].name),
+                        trailing: const Icon(Icons.chevron_left),
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => PlaylistDetailScreen(playlist: list[i])),
+                        ),
                       ),
                     ),
               loading: () => const Center(child: CircularProgressIndicator()),

@@ -1,21 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import '../core/greetings.dart';
+import '../core/genres.dart';
 import '../providers/songs_provider.dart';
 import '../providers/player_provider.dart';
 import '../widgets/banner_carousel.dart';
 import '../widgets/section_header.dart';
 import '../widgets/song_tile.dart';
 import 'player_screen.dart';
+import 'genre_screen.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
+
+  String _userName() {
+    final u = Supabase.instance.client.auth.currentUser;
+    if (u == null) return '';
+    final meta = u.userMetadata;
+    if (meta != null && meta['name'] != null) return firstName(meta['name'].toString());
+    if (meta != null && meta['full_name'] != null) return firstName(meta['full_name'].toString());
+    if (u.email != null) return firstName(u.email);
+    return '';
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final newReleases = ref.watch(newReleasesProvider);
     final popular = ref.watch(popularProvider);
     final banners = ref.watch(bannersProvider);
-    final genres = ref.watch(genresProvider);
+    final user = _userName();
 
     return Scaffold(
       body: RefreshIndicator(
@@ -26,9 +40,12 @@ class HomeScreen extends ConsumerWidget {
         },
         child: CustomScrollView(
           slivers: [
-            const SliverAppBar(
+            SliverAppBar(
               floating: true,
-              title: Text('سلام 👋', style: TextStyle(fontWeight: FontWeight.bold)),
+              title: Text(
+                user.isNotEmpty ? '${greetingMessage()} $user' : greetingMessage(),
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
             ),
             // Banner
             SliverToBoxAdapter(
@@ -41,23 +58,53 @@ class HomeScreen extends ConsumerWidget {
                 error: (_, __) => const SizedBox.shrink(),
               ),
             ),
-            // Genres chips
+            // Genre cards (Iranian categories)
             SliverToBoxAdapter(
-              child: genres.when(
-                data: (list) => list.isEmpty
-                    ? const SizedBox.shrink()
-                    : SizedBox(
-                        height: 44,
-                        child: ListView.separated(
-                          scrollDirection: Axis.horizontal,
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                          itemCount: list.length,
-                          separatorBuilder: (_, __) => const SizedBox(width: 8),
-                          itemBuilder: (_, i) => Chip(label: Text(list[i])),
+              child: const SectionHeader(title: 'دسته‌بندی‌ها 🎭'),
+            ),
+            SliverToBoxAdapter(
+              child: SizedBox(
+                height: 132,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  separatorBuilder: (_, __) => const SizedBox(width: 12),
+                  itemCount: genresList.length,
+                  itemBuilder: (_, i) {
+                    final g = genresList[i];
+                    return GestureDetector(
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => GenreScreen(genre: g.name)),
+                      ),
+                      child: Container(
+                        width: 120,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16),
+                          image: DecorationImage(
+                            image: NetworkImage(g.imageUrl),
+                            fit: BoxFit.cover,
+                            colorFilter: ColorFilter.mode(Colors.black.withOpacity(0.35), BlendMode.darken),
+                          ),
+                        ),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(16),
+                            gradient: LinearGradient(
+                              begin: Alignment.bottomCenter,
+                              end: Alignment.topCenter,
+                              colors: [Colors.black.withOpacity(0.7), Colors.transparent],
+                            ),
+                          ),
+                          padding: const EdgeInsets.all(10),
+                          alignment: Alignment.bottomRight,
+                          child: Text(g.name,
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white)),
                         ),
                       ),
-                loading: () => const SizedBox.shrink(),
-                error: (_, __) => const SizedBox.shrink(),
+                    );
+                  },
+                ),
               ),
             ),
             // New releases

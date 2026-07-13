@@ -14,9 +14,14 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
   final _password = TextEditingController();
   bool _isLogin = true;
   bool _loading = false;
+  bool _obscure = true;
   String? _error;
 
   Future<void> _submit() async {
+    if (_email.text.trim().isEmpty || _password.text.trim().length < 6) {
+      setState(() => _error = 'ایمیل و رمز عبور (حداقل ۶ کاراکتر) را وارد کن');
+      return;
+    }
     setState(() { _loading = true; _error = null; });
     try {
       final auth = ref.read(authControllerProvider);
@@ -26,7 +31,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
         await auth.signUp(_email.text.trim(), _password.text.trim());
       }
     } catch (e) {
-      setState(() => _error = e.toString());
+      setState(() => _error = _cleanError(e.toString()));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -37,75 +42,128 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     try {
       await ref.read(authControllerProvider).signInWithGoogle();
     } catch (e) {
-      setState(() => _error = e.toString());
+      setState(() => _error = _cleanError(e.toString()));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
   }
 
+  String _cleanError(String e) {
+    return e
+        .replaceAll('AuthException', '')
+        .replaceAll('Exception:', '')
+        .replaceAll('PostgrestException', '')
+        .replaceAll('ApiException', '')
+        .replaceAll(RegExp(r'message:\s*'), '')
+        .trim();
+  }
+
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
     return Scaffold(
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const Icon(Icons.graphic_eq, size: 64, color: AppColors.primary),
-                const SizedBox(height: 12),
-                const Text('Iranian Spotify', textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 6),
-                Text(_isLogin ? 'ورود به حساب' : 'ساخت حساب جدید',
-                    textAlign: TextAlign.center, style: const TextStyle(color: Colors.grey)),
-                const SizedBox(height: 28),
-                TextField(
-                  controller: _email,
-                  keyboardType: TextInputType.emailAddress,
-                  decoration: const InputDecoration(
-                    labelText: 'ایمیل', prefixIcon: Icon(Icons.email_outlined),
-                    border: OutlineInputBorder(),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              AppColors.primary.withOpacity(0.25),
+              Theme.of(context).scaffoldBackgroundColor,
+              Theme.of(context).scaffoldBackgroundColor,
+            ],
+          ),
+        ),
+        child: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Icon(Icons.graphic_eq_rounded, size: 76, color: AppColors.primary),
+                  const SizedBox(height: 14),
+                  ShaderMask(
+                    shaderCallback: (b) => LinearGradient(
+                      colors: [AppColors.primary, Colors.tealAccent],
+                    ).createShader(b),
+                    child: const Text('Iranian Spotify',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 30, fontWeight: FontWeight.w900, color: Colors.white)),
                   ),
-                ),
-                const SizedBox(height: 14),
-                TextField(
-                  controller: _password,
-                  obscureText: true,
-                  decoration: const InputDecoration(
-                    labelText: 'رمز عبور', prefixIcon: Icon(Icons.lock_outline),
-                    border: OutlineInputBorder(),
+                  const SizedBox(height: 6),
+                  Text(_isLogin ? 'وارد حساب کاربری خود شوید' : 'حساب جدید خود را بسازید',
+                      textAlign: TextAlign.center, style: TextStyle(color: Theme.of(context).hintColor)),
+                  const SizedBox(height: 30),
+                  TextField(
+                    controller: _email,
+                    keyboardType: TextInputType.emailAddress,
+                    textInputAction: TextInputAction.next,
+                    decoration: const InputDecoration(
+                      labelText: 'ایمیل',
+                      prefixIcon: Icon(Icons.email_outlined),
+                    ),
                   ),
-                ),
-                if (_error != null) ...[
-                  const SizedBox(height: 12),
-                  Text(_error!, style: const TextStyle(color: Colors.redAccent, fontSize: 12)),
+                  const SizedBox(height: 14),
+                  TextField(
+                    controller: _password,
+                    obscureText: _obscure,
+                    decoration: InputDecoration(
+                      labelText: 'رمز عبور',
+                      prefixIcon: const Icon(Icons.lock_outline),
+                      suffixIcon: IconButton(
+                        icon: Icon(_obscure ? Icons.visibility : Icons.visibility_off),
+                        onPressed: () => setState(() => _obscure = !_obscure),
+                      ),
+                    ),
+                  ),
+                  if (_error != null) ...[
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Colors.redAccent.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(_error!, style: const TextStyle(color: Colors.redAccent, fontSize: 13)),
+                    ),
+                  ],
+                  const SizedBox(height: 22),
+                  FilledButton(
+                    onPressed: _loading ? null : _submit,
+                    style: FilledButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 15),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                    ),
+                    child: _loading
+                        ? const SizedBox(height: 22, width: 22, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black))
+                        : Text(_isLogin ? 'ورود' : 'ثبت‌نام', style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
+                  ),
+                  const SizedBox(height: 14),
+                  Row(
+                    children: [
+                      Expanded(child: Divider(color: Theme.of(context).dividerColor)),
+                      const Padding(padding: EdgeInsets.symmetric(horizontal: 10), child: Text('یا', style: TextStyle(fontSize: 12))),
+                      Expanded(child: Divider(color: Theme.of(context).dividerColor)),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                  OutlinedButton.icon(
+                    onPressed: _loading ? null : _google,
+                    icon: const Icon(Icons.g_mobiledata, size: 26),
+                    label: const Text('ورود با حساب گوگل'),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 13),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  TextButton(
+                    onPressed: () => setState(() => _isLogin = !_isLogin),
+                    child: Text(_isLogin ? 'حساب نداری؟ همین‌جا بساز 🎵' : 'قبلاً ثبت‌نام کردی؟ وارد شو'),
+                  ),
                 ],
-                const SizedBox(height: 20),
-                FilledButton(
-                  onPressed: _loading ? null : _submit,
-                  style: FilledButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                  ),
-                  child: _loading
-                      ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black))
-                      : Text(_isLogin ? 'ورود' : 'ثبت‌نام', style: const TextStyle(fontSize: 16)),
-                ),
-                const SizedBox(height: 12),
-                OutlinedButton.icon(
-                  onPressed: _loading ? null : _google,
-                  icon: const Icon(Icons.g_mobiledata, size: 28),
-                  label: const Text('ورود با گوگل'),
-                  style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 12)),
-                ),
-                const SizedBox(height: 16),
-                TextButton(
-                  onPressed: () => setState(() => _isLogin = !_isLogin),
-                  child: Text(_isLogin ? 'حساب نداری؟ ثبت‌نام کن' : 'حساب داری؟ وارد شو'),
-                ),
-              ],
+              ),
             ),
           ),
         ),
