@@ -96,8 +96,8 @@ def patch_app_module():
 
 
 def force_root_subprojects():
-    """Add a subprojects block to the ROOT android/build.gradle(.kts) so every
-    plugin module (file_picker, lifecycle, ...) is forced to compileSdk 36."""
+    """Add a correct subprojects block to the ROOT android/build.gradle(.kts).
+    If an old/invalid subprojects block is present, remove it first."""
     for fname in ("build.gradle.kts", "build.gradle"):
         PATH = os.path.join(ANDROID_DIR, fname)
         if not os.path.isfile(PATH):
@@ -105,9 +105,10 @@ def force_root_subprojects():
         KTS = dsl_of(PATH)
         with open(PATH, "r", encoding="utf-8") as f:
             s = f.read()
-        if "subprojects {" in s:
-            print("root: subprojects block already present")
-            return
+
+        # Remove any pre-existing subprojects {...} block (invalid one from earlier runs)
+        s = re.sub(r"\nsubprojects\s*\{.*?\n\}\n", "\n", s, flags=re.DOTALL)
+
         if KTS:
             block = (
                 "\nsubprojects {\n"
@@ -132,7 +133,7 @@ def force_root_subprojects():
                 "    }\n"
                 "}\n"
             )
-        s += block
+        s = s.rstrip() + "\n" + block
         with open(PATH, "w", encoding="utf-8") as f:
             f.write(s)
         print("root: forced subprojects compileSdk=36 (via %s)" % fname)
