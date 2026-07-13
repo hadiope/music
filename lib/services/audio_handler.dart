@@ -42,6 +42,33 @@ class AudioPlayerHandler {
     play();
   }
 
+  /// Play a single local file (file:// or content:// URI picked by the user).
+  /// No upload — stays on device, perfect for personal playlists.
+  Future<void> playLocalFile(String path, {String title = 'آهنگ محلی', String artist = 'دستگاه'}) async {
+    final song = Song(
+      id: 'local_${path.hashCode}',
+      title: title,
+      artist: artist,
+      audioUrl: path.startsWith('http') ? path : 'file://$path',
+      coverUrl: '',
+      genre: '',
+      album: '',
+      plays: 0,
+    );
+    _queue = [song];
+    await player.setAudioSource(
+      AudioSource.uri(
+        Uri.parse(song.audioUrl),
+        tag: MediaItem(
+          id: song.id,
+          title: song.title,
+          artist: song.artist,
+        ),
+      ),
+    );
+    play();
+  }
+
   Future<void> play() => player.play();
   Future<void> pause() => player.pause();
   Future<void> seek(Duration pos) => player.seek(pos);

@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../core/strings.dart';
 import '../providers/likes_provider.dart';
 import '../providers/playlist_provider.dart';
 import '../providers/player_provider.dart';
 import '../widgets/song_tile.dart';
 import 'player_screen.dart';
 import 'playlist_detail_screen.dart';
+import 'local_songs_screen.dart';
 
 class LibraryScreen extends ConsumerWidget {
   const LibraryScreen({super.key});
@@ -20,16 +22,24 @@ class LibraryScreen extends ConsumerWidget {
       length: 3,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('کتابخانه'),
-          bottom: const TabBar(tabs: [
-            Tab(text: 'علاقه‌مندی‌ها ❤️'),
-            Tab(text: 'پلی‌لیست‌ها'),
-            Tab(text: 'تاریخچه'),
+          title: Text(T.library),
+          bottom: TabBar(tabs: [
+            Tab(text: '❤️ ${T.liked}'),
+            Tab(text: T.playlists),
+            Tab(text: T.nowPlaying),
           ]),
           actions: [
             IconButton(
+              icon: const Icon(Icons.folder_open),
+              tooltip: T.addFromDevice,
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const LocalSongsScreen()),
+              ),
+            ),
+            IconButton(
               icon: const Icon(Icons.add_circle_outline),
-              tooltip: 'ساخت پلی‌لیست',
+              tooltip: T.playlists,
               onPressed: () => _createPlaylistDialog(context, ref),
             ),
           ],
@@ -47,7 +57,7 @@ class LibraryScreen extends ConsumerWidget {
                           TextButton.icon(
                             onPressed: () => _createPlaylistDialog(context, ref),
                             icon: const Icon(Icons.add),
-                            label: const Text('بساز اولین پلی‌لیست'),
+                            label: Text('بساز اولین ${T.playlists}'),
                           ),
                         ],
                       ),
@@ -77,7 +87,7 @@ class LibraryScreen extends ConsumerWidget {
   Widget _songList(BuildContext context, WidgetRef ref, AsyncValue songs) {
     return songs.when(
       data: (list) {
-        if (list.isEmpty) return const Center(child: Text('خالیه', style: TextStyle(color: Colors.grey)));
+        if (list.isEmpty) return Center(child: Text(T.noResults, style: const TextStyle(color: Colors.grey)));
         return ListView.builder(
           itemCount: list.length,
           itemBuilder: (_, i) => SongTile(

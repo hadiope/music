@@ -7,6 +7,7 @@ import 'package:just_audio_background/just_audio_background.dart';
 import 'package:in_app_update/in_app_update.dart';
 import 'core/constants.dart';
 import 'core/theme.dart';
+import 'core/strings.dart';
 import 'providers/settings_provider.dart';
 import 'screens/splash_screen.dart';
 
@@ -68,6 +69,7 @@ class HarmonyApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(themeProvider);
     final locale = ref.watch(localeProvider);
+    T.setLocale(locale.languageCode);
 
     return MaterialApp(
       title: 'Iranian Spotify',
@@ -76,7 +78,7 @@ class HarmonyApp extends ConsumerWidget {
       darkTheme: AppTheme.dark(),
       themeMode: themeMode,
       locale: locale,
-      supportedLocales: const [Locale('fa')],
+      supportedLocales: const [Locale('fa'), Locale('en')],
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,

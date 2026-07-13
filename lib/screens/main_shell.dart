@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../core/strings.dart';
 import '../widgets/mini_player.dart';
 import 'home_screen.dart';
 import 'search_screen.dart';
@@ -17,7 +18,7 @@ class _MainShellState extends ConsumerState<MainShell> {
   final _pages = const [HomeScreen(), SearchScreen(), LibraryScreen(), ProfileScreen()];
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       body: IndexedStack(index: _index, children: _pages),
       bottomNavigationBar: Column(
@@ -28,11 +29,11 @@ class _MainShellState extends ConsumerState<MainShell> {
           BottomNavigationBar(
             currentIndex: _index,
             onTap: (i) => setState(() => _index = i),
-            items: const [
-              BottomNavigationBarItem(icon: Icon(Icons.home_outlined), activeIcon: Icon(Icons.home), label: 'خانه'),
-              BottomNavigationBarItem(icon: Icon(Icons.search), label: 'جستجو'),
-              BottomNavigationBarItem(icon: Icon(Icons.library_music_outlined), activeIcon: Icon(Icons.library_music), label: 'کتابخانه'),
-              BottomNavigationBarItem(icon: Icon(Icons.person_outline), activeIcon: Icon(Icons.person), label: 'پروفایل'),
+            items: [
+              BottomNavigationBarItem(icon: const Icon(Icons.home_outlined), activeIcon: const Icon(Icons.home), label: T.home),
+              BottomNavigationBarItem(icon: const Icon(Icons.search), label: T.search),
+              BottomNavigationBarItem(icon: const Icon(Icons.library_music_outlined), activeIcon: const Icon(Icons.library_music), label: T.library),
+              BottomNavigationBarItem(icon: const Icon(Icons.person_outline), activeIcon: const Icon(Icons.person), label: T.profile),
             ],
           ),
         ],

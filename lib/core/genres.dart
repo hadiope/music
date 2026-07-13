@@ -10,7 +10,5 @@ const List<GenreItem> genresList = [
   GenreItem('پاپ', 'https://picsum.photos/seed/pop/400/400'),
   GenreItem('رپ', 'https://picsum.photos/seed/rap/400/400'),
   GenreItem('سنتی', 'https://picsum.photos/seed/traditional/400/400'),
-  GenreItem('هوروشی', 'https://picsum.photos/seed/horoshi/400/400'),
-  GenreItem('تلفیقی', 'https://picsum.photos/seed/fusion/400/400'),
   GenreItem('محلی', 'https://picsum.photos/seed/local/400/400'),
 ];

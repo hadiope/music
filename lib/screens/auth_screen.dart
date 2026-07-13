@@ -12,6 +12,7 @@ class AuthScreen extends ConsumerStatefulWidget {
 class _AuthScreenState extends ConsumerState<AuthScreen> {
   final _email = TextEditingController();
   final _password = TextEditingController();
+  final _name = TextEditingController();
   bool _isLogin = true;
   bool _loading = false;
   bool _obscure = true;
@@ -22,13 +23,18 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
       setState(() => _error = 'ایمیل و رمز عبور (حداقل ۶ کاراکتر) را وارد کن');
       return;
     }
+    if (!_isLogin && _name.text.trim().isEmpty) {
+      setState(() => _error = 'لطفاً نام و نام خانوادگی خود را وارد کن');
+      return;
+    }
     setState(() { _loading = true; _error = null; });
     try {
       final auth = ref.read(authControllerProvider);
       if (_isLogin) {
         await auth.signIn(_email.text.trim(), _password.text.trim());
       } else {
-        await auth.signUp(_email.text.trim(), _password.text.trim());
+        await auth.signUp(_email.text.trim(), _password.text.trim(),
+            fullName: _name.text.trim());
       }
     } catch (e) {
       setState(() => _error = _cleanError(e.toString()));
@@ -59,6 +65,14 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
   }
 
   @override
+  void dispose() {
+    _email.dispose();
+    _password.dispose();
+    _name.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     return Scaffold(
@@ -68,7 +82,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              AppColors.primary.withOpacity(0.25),
+              AppColors.primary.withOpacity(0.30),
               Theme.of(context).scaffoldBackgroundColor,
               Theme.of(context).scaffoldBackgroundColor,
             ],
@@ -81,8 +95,29 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Icon(Icons.graphic_eq_rounded, size: 76, color: AppColors.primary),
-                  const SizedBox(height: 14),
+                  // App icon
+                  Hero(
+                    tag: 'appIcon',
+                    child: Container(
+                      width: 96,
+                      height: 96,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primary.withOpacity(0.4),
+                            blurRadius: 24,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
+                        image: const DecorationImage(
+                          image: AssetImage('assets/images/app_icon_fg.png'),
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
                   ShaderMask(
                     shaderCallback: (b) => LinearGradient(
                       colors: [AppColors.primary, Colors.tealAccent],
@@ -95,6 +130,27 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                   Text(_isLogin ? 'وارد حساب کاربری خود شوید' : 'حساب جدید خود را بسازید',
                       textAlign: TextAlign.center, style: TextStyle(color: Theme.of(context).hintColor)),
                   const SizedBox(height: 30),
+
+                  // Name field (sign up only)
+                  AnimatedCrossFade(
+                    duration: const Duration(milliseconds: 250),
+                    crossFadeState: _isLogin ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+                    secondChild: const SizedBox.shrink(),
+                    firstChild: Column(
+                      children: [
+                        TextField(
+                          controller: _name,
+                          textInputAction: TextInputAction.next,
+                          decoration: const InputDecoration(
+                            labelText: 'نام و نام خانوادگی',
+                            prefixIcon: Icon(Icons.person_outline),
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+                      ],
+                    ),
+                  ),
+
                   TextField(
                     controller: _email,
                     keyboardType: TextInputType.emailAddress,

@@ -5,7 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 class LocalBanner extends StatelessWidget {
   const LocalBanner({super.key});
 
-  static const String _link = 'shad://l.shad.ir/TextStory';
+  static const String _link = 'https://l.shad.ir/TextStory';
 
   @override
   Widget build(BuildContext context) {

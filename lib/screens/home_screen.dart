@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../core/greetings.dart';
 import '../core/genres.dart';
+import '../widgets/net_image.dart';
 import '../providers/songs_provider.dart';
 import '../providers/player_provider.dart';
 import '../widgets/banner_carousel.dart';
@@ -73,29 +74,30 @@ class HomeScreen extends ConsumerWidget {
                         context,
                         MaterialPageRoute(builder: (_) => GenreScreen(genre: g.name)),
                       ),
-                      child: Container(
-                        width: 120,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(16),
-                          image: DecorationImage(
-                            image: NetworkImage(g.imageUrl),
-                            fit: BoxFit.cover,
-                            colorFilter: ColorFilter.mode(Colors.black.withOpacity(0.35), BlendMode.darken),
-                          ),
-                        ),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(16),
-                            gradient: LinearGradient(
-                              begin: Alignment.bottomCenter,
-                              end: Alignment.topCenter,
-                              colors: [Colors.black.withOpacity(0.7), Colors.transparent],
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child: Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            NetImage(g.imageUrl, width: 120, height: 132, radius: 0),
+                            Container(
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.bottomCenter,
+                                  end: Alignment.topCenter,
+                                  colors: [Colors.black.withOpacity(0.7), Colors.transparent],
+                                ),
+                              ),
                             ),
-                          ),
-                          padding: const EdgeInsets.all(10),
-                          alignment: Alignment.bottomRight,
-                          child: Text(g.name,
-                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white)),
+                            Align(
+                              alignment: Alignment.bottomRight,
+                              child: Padding(
+                                padding: const EdgeInsets.all(10),
+                                child: Text(g.name,
+                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white)),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     );

@@ -1,6 +1,6 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import '../models/song.dart';
+import 'net_image.dart';
 
 /// A single song row (used in lists).
 class SongTile extends StatelessWidget {
@@ -13,22 +13,7 @@ class SongTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       onTap: onTap,
-      leading: ClipRRect(
-        borderRadius: BorderRadius.circular(6),
-        child: CachedNetworkImage(
-          imageUrl: song.coverUrl,
-          width: 52,
-          height: 52,
-          fit: BoxFit.cover,
-          placeholder: (_, __) => Container(width: 52, height: 52, color: Colors.grey.shade800),
-          errorWidget: (_, __, ___) => Container(
-            width: 52,
-            height: 52,
-            color: Colors.grey.shade800,
-            child: const Icon(Icons.music_note, color: Colors.white54),
-          ),
-        ),
-      ),
+      leading: NetImage(song.coverUrl, width: 52, height: 52, radius: 6),
       title: Text(song.title, maxLines: 1, overflow: TextOverflow.ellipsis,
           style: const TextStyle(fontWeight: FontWeight.w600)),
       subtitle: Text(song.artist, maxLines: 1, overflow: TextOverflow.ellipsis),
@@ -53,22 +38,7 @@ class SongCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: CachedNetworkImage(
-                imageUrl: song.coverUrl,
-                width: size,
-                height: size,
-                fit: BoxFit.cover,
-                placeholder: (_, __) => Container(width: size, height: size, color: Colors.grey.shade800),
-                errorWidget: (_, __, ___) => Container(
-                  width: size,
-                  height: size,
-                  color: Colors.grey.shade800,
-                  child: const Icon(Icons.music_note, color: Colors.white54, size: 40),
-                ),
-              ),
-            ),
+            NetImage(song.coverUrl, width: size, height: size, radius: 10),
             const SizedBox(height: 6),
             Text(song.title, maxLines: 1, overflow: TextOverflow.ellipsis,
                 style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),

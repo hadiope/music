@@ -1,6 +1,6 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../widgets/net_image.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:share_plus/share_plus.dart';
 import '../core/constants.dart';
@@ -41,19 +41,7 @@ class PlayerScreen extends ConsumerWidget {
               children: [
                 const Spacer(),
                 // Cover art
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(16),
-                  child: CachedNetworkImage(
-                    imageUrl: song.coverUrl,
-                    width: 300,
-                    height: 300,
-                    fit: BoxFit.cover,
-                    errorWidget: (_, __, ___) => Container(
-                      width: 300, height: 300, color: Colors.grey.shade800,
-                      child: const Icon(Icons.music_note, size: 100, color: Colors.white54),
-                    ),
-                  ),
-                ),
+                NetImage(song.coverUrl, width: 300, height: 300, radius: 16),
                 const SizedBox(height: 32),
                 // Title + artist + like
                 Row(

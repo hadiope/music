@@ -1,5 +1,5 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import '../widgets/net_image.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart';
 import '../providers/core_providers.dart';
@@ -37,16 +37,7 @@ class MiniPlayer extends ConsumerWidget {
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(6),
-                  child: CachedNetworkImage(
-                    imageUrl: song.coverUrl,
-                    width: 46,
-                    height: 46,
-                    fit: BoxFit.cover,
-                    errorWidget: (_, __, ___) => Container(
-                      width: 46, height: 46, color: Colors.grey.shade800,
-                      child: const Icon(Icons.music_note, color: Colors.white54),
-                    ),
-                  ),
+                  child: NetImage(song.coverUrl, width: 46, height: 46, radius: 6),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
