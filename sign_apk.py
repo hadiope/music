@@ -86,6 +86,41 @@ else:
             )
         print("signing injected")
 
+# --- 3. Force ALL subprojects (plugins like file_picker) to compileSdk 36 ---
+# Plugins in .pub-cache are compiled against the SDK Flutter tells them to;
+# we override it via a subprojects block appended to the app build file.
+force_block = (
+    "\n"
+    "allprojects {\n"
+    "    tasks.withType<com.android.build.gradle.tasks.Aapt2Compile>() {}\n"
+    "}\n"
+    "subprojects {\n"
+    "    afterEvaluate {\n"
+    "        extensions.findByType<com.android.build.gradle.BaseExtension>()?.let {\n"
+    "            it.compileSdkVersion = 36\n"
+    "            it.defaultConfig { minSdk = 23 }\n"
+    "        }\n"
+    "    }\n"
+    "}\n"
+    if KTS_DSL else
+    "\n"
+    "allprojects {\n"
+    "    afterEvaluate { project ->\n"
+    "        if (project.hasProperty('android')) {\n"
+    "            project.android {\n"
+    "                compileSdkVersion 36\n"
+    "                defaultConfig { minSdkVersion 23 }\n"
+    "            }\n"
+    "        }\n"
+    "    }\n"
+    "}\n"
+)
+if "subprojects {" not in s and "allprojects {" not in s:
+    s += force_block
+    print("forced subprojects compileSdk=36")
+else:
+    print("subprojects/allprojects block already present")
+
 with open(PATH, "w", encoding="utf-8") as f:
     f.write(s)
 
