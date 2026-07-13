@@ -89,10 +89,17 @@ jobs:
       - name: Build signed APK (release)
         run: |
           set -e
-          flutter build apk --release
+          cd android
+          ./gradlew assembleRelease --no-daemon --no-tree-shake-icons
+          cd ..
           APK=build/app/outputs/flutter-apk/app-release.apk
+          ALT=android/app/build/outputs/apk/release/app-release.apk
           if [ -f "$APK" ]; then
             echo "APK built and signed: $(ls -la $APK | awk '{print $5}') bytes"
+          elif [ -f "$ALT" ]; then
+            mkdir -p build/app/outputs/flutter-apk
+            cp "$ALT" "$APK"
+            echo "APK built and signed (from gradle path): $(ls -la $APK | awk '{print $5}') bytes"
           else
             echo "APK not found, failing"
             exit 1
