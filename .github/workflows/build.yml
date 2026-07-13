@@ -23,29 +23,27 @@ jobs:
         with:
           channel: 'stable'
 
+      # Create the Android/iOS platform folders. The project already has lib/,
+      # so we let Flutter merge into the existing directory.
       - name: Create platform folders
-        run: flutter create .
+        run: flutter create --platforms=android .
 
       - name: Set app name to Iranian Spotify
         run: |
           MANIFEST=android/app/src/main/AndroidManifest.xml
-          sed -i 's/android:label="[^"]*"/android:label="Iranian Spotify"/' "$MANIFEST"
-          echo "----- label line -----"
-          grep 'android:label' "$MANIFEST" || true
+          if [ -f "$MANIFEST" ]; then
+            sed -i 's/android:label="[^"]*"/android:label="Iranian Spotify"/' "$MANIFEST"
+          fi
+          echo "label set"
 
       - name: Set minSdkVersion to 23 (required by audio packages)
         run: |
-          GRADLE=android/app/build.gradle
-          if [ -f "$GRADLE" ]; then
-            sed -i 's/minSdkVersion .*/minSdkVersion 23/' "$GRADLE"
-            sed -i 's/minSdk = .*/minSdk = 23/' "$GRADLE"
-          fi
-          GRADLE_KTS=android/app/build.gradle.kts
-          if [ -f "$GRADLE_KTS" ]; then
-            sed -i 's/minSdk = .*/minSdk = 23/' "$GRADLE_KTS"
-            sed -i 's/minSdkVersion(.*)/minSdk = 23/' "$GRADLE_KTS"
-          fi
-          echo "done"
+          for f in android/app/build.gradle android/app/build.gradle.kts; do
+            if [ -f "$f" ]; then
+              sed -i -E 's/(minSdkVersion|minSdk ?=)[^0-9]*[0-9]+/\1 23/g' "$f"
+            fi
+          done
+          echo "minSdk patched"
 
       - name: Get dependencies
         run: flutter pub get
