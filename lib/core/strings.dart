@@ -1,64 +1,38 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../providers/settings_provider.dart';
+// ignore_for_file: avoid_classes_with_only_static_members
 
-/// Lightweight i18n. Each string has a fa + en value. Watch [tProvider]
-/// (which depends on localeProvider) so the whole UI flips instantly.
+/// Centralized, translatable string table.
+/// Usage: T.home  →  current locale string (fa / en)
 class T {
-  T();
-  static String tr(String fa, String en) => _locale == 'en' ? en : fa;
+  static String _lang = 'fa';
 
-  static String get localeCode => _locale;
-  static String _locale = 'fa';
-  static void setLocale(String code) => _locale = code;
+  static void setLocale(String code) => _lang = code;
 
-  // --- common ---
-  static String get appName => tr('Iranian Spotify', 'Iranian Spotify');
-  static String get home => tr('خانه', 'Home');
-  static String get search => tr('جستجو', 'Search');
-  static String get library => tr('کتابخانه', 'Library');
-  static String get profile => tr('پروفایل', 'Profile');
-  static String get playlists => tr('پلی‌لیست‌ها', 'Playlists');
-  static String get songs => tr('آهنگ‌ها', 'Songs');
-  static String get albums => tr('آلبوم‌ها', 'Albums');
-  static String get artists => tr('خوانندگان', 'Artists');
-  static String get genres => tr('دسته‌بندی‌ها', 'Genres');
-  static String get settings => tr('تنظیمات', 'Settings');
-  static String get logout => tr('خروج از حساب', 'Log out');
-  static String get login => tr('ورود', 'Log in');
-  static String get signup => tr('ثبت‌نام', 'Sign up');
-  static String get loginWithGoogle => tr('ورود با حساب گوگل', 'Sign in with Google');
-  static String get email => tr('ایمیل', 'Email');
-  static String get password => tr('رمز عبور', 'Password');
-  static String get fullName => tr('نام و نام خانوادگی', 'Full name');
-  static String get changePassword => tr('تغییر رمز عبور', 'Change password');
-  static String get newPassword => tr('رمز عبور جدید (حداقل ۶ کاراکتر)', 'New password (min 6)');
-  static String get displayName => tr('نام نمایشی', 'Display name');
-  static String get save => tr('ذخیره', 'Save');
-  static String get cancel => tr('انصراف', 'Cancel');
-  static String get darkTheme => tr('تم تیره', 'Dark theme');
-  static String get language => tr('زبان', 'Language');
-  static String get telegramChannel => tr('کانال تلگرام ما', 'Our Telegram channel');
-  static String get addSong => tr('افزودن آهنگ (پنل مدیریت)', 'Add song (admin)');
-  static String get nowPlaying => tr('در حال پخش', 'Now playing');
-  static String get noResults => tr('نتیجه‌ای یافت نشد', 'No results');
-  static String get addFromDevice => tr('افزودن از حافظه گوشی', 'Add from device');
-  static String get localFiles => tr('فایل‌های دستگاه', 'Device files');
-  static String get liked => tr('علاقه‌مندی‌ها', 'Liked');
-  static String get about => tr('درباره Iranian Spotify', 'About Iranian Spotify');
-  static String get version => tr('نسخه ۱.۱.۰', 'Version 1.1.0');
-  static String get welcomeBack => tr('خوش برگشتی', 'Welcome back');
-  static String get createAccount => tr('حساب جدید بساز', 'Create account');
-  static String get alreadyHave => tr('قبلاً ثبت‌نام کردی؟ وارد شو', 'Have an account? Log in');
-  static String get noAccount => tr('حساب نداری؟ همین‌جا بساز', "Don't have an account? Sign up");
-  static String get categories => tr('دسته‌بندی‌ها 🎭', 'Categories 🎭');
-  static String get sharePlaylist => tr('اشتراک پلی‌لیست', 'Share playlist');
+  static String get lang => _lang;
+
+  // navigation
+  static String get home => _lang == 'en' ? 'Home' : 'خانه';
+  static String get search => _lang == 'en' ? 'Search' : 'جستجو';
+  static String get library => _lang == 'en' ? 'Library' : 'کتابخانه';
+  static String get profile => _lang == 'en' ? 'Profile' : 'پروفایل';
+  static String get categories => _lang == 'en' ? 'Categories' : 'دسته‌بندی‌ها';
+  static String get nowPlaying => _lang == 'en' ? 'Now Playing' : 'در حال پخش';
+  static String get liked => _lang == 'en' ? 'Liked' : 'پسندیده';
+  static String get playlists => _lang == 'en' ? 'Playlists' : 'پلی‌لیست‌ها';
+
+  // common
+  static String get noResults => _lang == 'en' ? 'Nothing found' : 'نتیجه‌ای یافت نشد';
+  static String get addFromDevice => _lang == 'en' ? 'From device' : 'از گوشی';
+  static String get localFiles => _lang == 'en' ? 'Local files' : 'فایل‌های گوشی';
+  static String get sharePlaylist => _lang == 'en' ? 'Share playlist' : 'اشتراک‌گذاری پلی‌لیست';
+  static String get settings => _lang == 'en' ? 'Settings' : 'تنظیمات';
+  static String get language => _lang == 'en' ? 'Language' : 'زبان';
+
+  // auth / guest
+  static String get continueAsGuest => _lang == 'en' ? 'Continue as guest' : 'ورود به عنوان مهمان';
+  static String get signIn => _lang == 'en' ? 'Sign in' : 'ورود';
+  static String get signUp => _lang == 'en' ? 'Sign up' : 'ثبت‌نام';
+
+  // player
+  static String get lyrics => _lang == 'en' ? 'Lyrics' : 'متن آهنگ';
+  static String get noLyrics => _lang == 'en' ? 'No lyrics added for this song.' : 'متن آهنگی برای این آهنگ ثبت نشده است.';
 }
-
-/// Watches the locale and keeps T in sync. Watch this in EVERY screen that uses T
-/// (call ref.watch(tProvider) once in build) so the UI rebuilds on language change.
-final tProvider = Provider<T>((ref) {
-  final code = ref.watch(localeProvider).languageCode;
-  T.setLocale(code);
-  return T();
-});

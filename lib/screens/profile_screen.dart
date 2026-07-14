@@ -35,9 +35,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   String _email() {
     final u = Supabase.instance.client.auth.currentUser;
-    if (u == null) return 'مهمان';
+    if (u == null) return T.lang == 'en' ? 'Guest' : 'مهمان';
     if (u.email != null) return u.email!;
-    return 'کاربر';
+    return T.lang == 'en' ? 'User' : 'کاربر';
   }
 
   String _fullName() {
@@ -51,7 +51,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     try {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     } catch (e) {
-      // Fallback: copy or open in browser
       await launchUrl(uri, mode: LaunchMode.platformDefault);
     }
   }
@@ -62,7 +61,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     setState(() { _saving = true; _msg = null; });
     try {
       await ref.read(authControllerProvider).updateName(name);
-      setState(() { _msg = 'نام با موفقیت ذخیره شد'; _msgOk = true; });
+      setState(() { _msg = T.lang == 'en' ? 'Name saved' : 'نام با موفقیت ذخیره شد'; _msgOk = true; });
     } catch (e) {
       setState(() { _msg = 'خطا: ${e.toString()}'; _msgOk = false; });
     } finally {
@@ -73,7 +72,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   Future<void> _changePassword() async {
     final newP = _newPassCtl.text.trim();
     if (newP.length < 6) {
-      setState(() { _msg = 'رمز جدید حداقل ۶ کاراکتر باشد'; _msgOk = false; });
+      setState(() { _msg = T.lang == 'en' ? 'Password must be at least 6 characters' : 'رمز جدید حداقل ۶ کاراکتر باشد'; _msgOk = false; });
       return;
     }
     setState(() { _saving = true; _msg = null; });
@@ -81,7 +80,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       await ref.read(authControllerProvider).changePassword(newP);
       _oldPassCtl.clear();
       _newPassCtl.clear();
-      setState(() { _msg = 'رمز عبور با موفقیت تغییر کرد'; _msgOk = true; });
+      setState(() { _msg = T.lang == 'en' ? 'Password changed' : 'رمز عبور با موفقیت تغییر کرد'; _msgOk = true; });
     } on AuthException catch (e) {
       setState(() { _msg = 'خطا: ${e.message}'; _msgOk = false; });
     } catch (e) {
@@ -101,7 +100,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     _nameCtl.text = name;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('پروفایل و تنظیمات')),
+      appBar: AppBar(title: Text(T.lang == 'en' ? 'Profile & Settings' : 'پروفایل و تنظیمات')),
       body: ListView(
         children: [
           const SizedBox(height: 20),
@@ -129,24 +128,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             color: const Color(0xFF229ED9),
             child: ListTile(
               leading: const Icon(Icons.telegram, color: Colors.white, size: 30),
-              title: const Text('کانال تلگرام ما', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-              subtitle: const Text('عضو شو و از آهنگای جدید باخبر شو', style: TextStyle(color: Colors.white70, fontSize: 12)),
+              title: Text(T.lang == 'en' ? 'Our Telegram channel' : 'کانال تلگرام ما', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              subtitle: Text(T.lang == 'en' ? 'Join to hear about new songs' : 'عضو شو و از آهنگای جدید باخبر شو', style: const TextStyle(color: Colors.white70, fontSize: 12)),
               trailing: const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 16),
               onTap: _openTelegram,
             ),
           ),
-
-          // Admin upload (for you to add music)
-          /*Card(
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-            child: ListTile(
-              leading: const Icon(Icons.cloud_upload_outlined, color: AppColors.primary),
-              title: const Text('افزودن آهنگ (پنل مدیریت)'),
-              subtitle: const Text('آهنگ جدید آپلود و منتشر کن'),
-              trailing: const Icon(Icons.arrow_forward_ios),
-              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminUploadScreen())),
-            ),
-          ),*/
 
           const Divider(height: 28),
 
@@ -156,16 +143,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('نام نمایشی', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                Text(T.lang == 'en' ? 'Display name' : 'نام نمایشی', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                 const SizedBox(height: 8),
                 Row(
                   children: [
                     Expanded(
                       child: TextFormField(
                         controller: _nameCtl,
-                        decoration: const InputDecoration(
-                          hintText: 'نام و نام خانوادگی',
-                          prefixIcon: Icon(Icons.person_outline),
+                        decoration: InputDecoration(
+                          hintText: T.lang == 'en' ? 'Name and family' : 'نام و نام خانوادگی',
+                          prefixIcon: const Icon(Icons.person_outline),
                         ),
                       ),
                     ),
@@ -185,9 +172,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           const SizedBox(height: 18),
 
           // --- Change password ---
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16),
-            child: Text('تغییر رمز عبور', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Text(T.lang == 'en' ? 'Change password' : 'تغییر رمز عبور', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
           ),
           const SizedBox(height: 8),
           Padding(
@@ -197,9 +184,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 TextFormField(
                   controller: _newPassCtl,
                   obscureText: true,
-                  decoration: const InputDecoration(
-                    hintText: 'رمز عبور جدید (حداقل ۶ کاراکتر)',
-                    prefixIcon: Icon(Icons.lock_outline),
+                  decoration: InputDecoration(
+                    hintText: T.lang == 'en' ? 'New password (min 6 chars)' : 'رمز عبور جدید (حداقل ۶ کاراکتر)',
+                    prefixIcon: const Icon(Icons.lock_outline),
                   ),
                 ),
                 const SizedBox(height: 10),
@@ -207,7 +194,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   width: double.infinity,
                   child: FilledButton.tonal(
                     onPressed: _saving ? null : _changePassword,
-                    child: const Text('تغییر رمز عبور'),
+                    child: Text(T.lang == 'en' ? 'Change password' : 'تغییر رمز عبور'),
                   ),
                 ),
               ],
@@ -234,13 +221,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           // --- Appearance & language ---
           SwitchListTile(
             secondary: const Icon(Icons.dark_mode),
-            title: const Text('تم تیره'),
+            title: Text(T.lang == 'en' ? 'Dark theme' : 'تم تیره'),
             value: themeMode == ThemeMode.dark,
             onChanged: (_) => ref.read(themeProvider.notifier).toggle(),
           ),
           ListTile(
             leading: const Icon(Icons.language),
-            title: const Text('زبان'),
+            title: Text(T.language),
             trailing: DropdownButton<String>(
               value: locale.languageCode,
               underline: const SizedBox.shrink(),
@@ -253,15 +240,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           ),
           ListTile(
             leading: const Icon(Icons.info_outline),
-            title: const Text('درباره Iranian Spotify'),
-            subtitle: const Text('نسخه ۱.۰.۰'),
+            title: Text(T.lang == 'en' ? 'About Iranian Sedà' : 'درباره Iranian Sedà'),
+            subtitle: const Text('Version 1.1.0'),
             onTap: () {},
           ),
 
           const Divider(height: 28),
           ListTile(
             leading: const Icon(Icons.logout, color: Colors.redAccent),
-            title: const Text('خروج از حساب', style: TextStyle(color: Colors.redAccent)),
+            title: Text(T.lang == 'en' ? 'Sign out' : 'خروج از حساب', style: const TextStyle(color: Colors.redAccent)),
             onTap: () => ref.read(authControllerProvider).signOut(),
           ),
           const SizedBox(height: 20),

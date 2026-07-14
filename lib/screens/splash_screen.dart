@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/theme.dart';
 import '../providers/core_providers.dart';
+import '../providers/auth_provider.dart';
 import 'auth_screen.dart';
 import 'main_shell.dart';
 
@@ -17,7 +18,15 @@ class SplashScreen extends ConsumerWidget {
       error: (_, __) => const AuthScreen(),
       data: (_) {
         final user = ref.watch(currentUserProvider);
-        return user == null ? const AuthScreen() : const MainShell();
+        if (user != null) return const MainShell();
+        // guest?
+        return FutureBuilder<bool>(
+          future: AuthController.isGuest(),
+          builder: (_, snap) {
+            if (snap.connectionState != ConnectionState.done) return const _Loading();
+            return snap.data == true ? const MainShell() : const AuthScreen();
+          },
+        );
       },
     );
   }

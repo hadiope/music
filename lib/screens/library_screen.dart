@@ -54,11 +54,11 @@ class LibraryScreen extends ConsumerWidget {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Text('پلی‌لیستی نداری'),
+                          Text(T.lang == 'en' ? 'You have no playlists' : 'پلی‌لیستی نداری'),
                           TextButton.icon(
                             onPressed: () => _createPlaylistDialog(context, ref),
                             icon: const Icon(Icons.add),
-                            label: Text('بساز اولین ${T.playlists}'),
+                            label: Text(T.lang == 'en' ? 'Create your first playlist' : 'بساز اولین ${T.playlists}'),
                           ),
                         ],
                       ),
@@ -110,10 +110,18 @@ class LibraryScreen extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('پلی‌لیست جدید'),
-        content: TextField(controller: ctrl, decoration: const InputDecoration(hintText: 'اسم پلی‌لیست')),
+        title: Text(T.lang == 'en' ? 'New playlist' : 'پلی‌لیست جدید'),
+        content: TextField(
+          controller: ctrl,
+          decoration: InputDecoration(
+            hintText: T.lang == 'en' ? 'Playlist name' : 'اسم پلی‌لیست',
+          ),
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('لغو')),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(T.lang == 'en' ? 'Cancel' : 'لغو'),
+          ),
           FilledButton(
             onPressed: () {
               if (ctrl.text.trim().isNotEmpty) {
@@ -121,7 +129,7 @@ class LibraryScreen extends ConsumerWidget {
               }
               Navigator.pop(context);
             },
-            child: const Text('بساز'),
+            child: Text(T.lang == 'en' ? 'Create' : 'بساز'),
           ),
         ],
       ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/theme.dart';
 import '../providers/auth_provider.dart';
+import 'main_shell.dart';
 
 class AuthScreen extends ConsumerStatefulWidget {
   const AuthScreen({super.key});
@@ -43,10 +44,15 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     }
   }
 
-  Future<void> _google() async {
-    setState(() { _loading = true; _error = null; });
+  Future<void> _guest() async {
+    setState(() => _loading = true);
     try {
-      await ref.read(authControllerProvider).signInWithGoogle();
+      await ref.read(authControllerProvider).continueAsGuest();
+      if (mounted) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const MainShell()),
+        );
+      }
     } catch (e) {
       setState(() => _error = _cleanError(e.toString()));
     } finally {
@@ -122,7 +128,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                     shaderCallback: (b) => LinearGradient(
                       colors: [AppColors.primary, Colors.tealAccent],
                     ).createShader(b),
-                    child: const Text('Iranian Spotify',
+                    child: const Text('Iranian Sedà',
                         textAlign: TextAlign.center,
                         style: TextStyle(fontSize: 30, fontWeight: FontWeight.w900, color: Colors.white)),
                   ),
@@ -205,9 +211,9 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                   ),
                   const SizedBox(height: 14),
                   OutlinedButton.icon(
-                    onPressed: _loading ? null : _google,
-                    icon: const Icon(Icons.g_mobiledata, size: 26),
-                    label: const Text('ورود با حساب گوگل'),
+                    onPressed: _loading ? null : _guest,
+                    icon: const Icon(Icons.person_outline),
+                    label: const Text('ورود به عنوان مهمان'),
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 13),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),

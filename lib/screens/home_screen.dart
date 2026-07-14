@@ -108,31 +108,37 @@ class HomeScreen extends ConsumerWidget {
               ),
             ),
             // New releases
-            const SliverToBoxAdapter(child: SectionHeader(title: 'تازه‌ها 🆕')),
+            SliverToBoxAdapter(
+              child: SectionHeader(title: T.lang == 'en' ? 'New releases 🆕' : 'تازه‌ها 🆕'),
+            ),
             SliverToBoxAdapter(
               child: newReleases.when(
                 data: (songs) => SizedBox(
                   height: 200,
-                  child: ListView.separated(
-                    scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: songs.length,
-                    separatorBuilder: (_, __) => const SizedBox(width: 12),
-                    itemBuilder: (_, i) => SongCard(
-                      song: songs[i],
-                      onTap: () {
-                        ref.read(playSongProvider).playQueue(songs, i);
-                        Navigator.push(context, MaterialPageRoute(builder: (_) => const PlayerScreen()));
-                      },
-                    ),
-                  ),
+                  child: songs.isEmpty
+                      ? const SizedBox.shrink()
+                      : ListView.separated(
+                          scrollDirection: Axis.horizontal,
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          itemCount: songs.length,
+                          separatorBuilder: (_, __) => const SizedBox(width: 12),
+                          itemBuilder: (_, i) => SongCard(
+                            song: songs[i],
+                            onTap: () {
+                              ref.read(playSongProvider).playQueue(songs, i);
+                              Navigator.push(context, MaterialPageRoute(builder: (_) => const PlayerScreen()));
+                            },
+                          ),
+                        ),
                 ),
                 loading: () => const SizedBox(height: 200, child: Center(child: CircularProgressIndicator())),
                 error: (e, __) => Padding(padding: const EdgeInsets.all(16), child: Text('خطا: $e')),
               ),
             ),
             // Popular
-            const SliverToBoxAdapter(child: SectionHeader(title: 'محبوب‌ها 🔥')),
+            SliverToBoxAdapter(
+              child: SectionHeader(title: T.lang == 'en' ? 'Popular 🔥' : 'محبوب‌ها 🔥'),
+            ),
             popular.when(
               data: (songs) => SliverList(
                 delegate: SliverChildBuilderDelegate(

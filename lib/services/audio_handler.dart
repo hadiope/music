@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_background/just_audio_background.dart';
 import '../models/song.dart';
@@ -16,14 +15,9 @@ class AudioPlayerHandler {
 
   Stream<PlayerState> get playerStateStream => player.playerStateStream;
   Stream<Duration> get positionStream => player.positionStream;
-  // Current track duration (not whole queue). just_audio exposes it via
-  // sequenceState.currentSource?.duration once the track has loaded.
   Stream<Duration?> get durationStream => player.durationStream;
-  Duration? get currentDuration {
-    final st = player.sequenceState;
-    if (st != null && st.currentSource != null) return st.currentSource!.duration;
-    return null;
-  }
+  Stream<int> get currentIndexStream =>
+      player.currentIndexStream.map((i) => i ?? 0);
 
   Song? get currentSong {
     if (_queue.isEmpty || _currentIndex < 0 || _currentIndex >= _queue.length) return null;
@@ -99,7 +93,7 @@ class AudioPlayerHandler {
   Future<void> next() async {
     if (_queue.isEmpty) return;
     if (_shuffle) {
-      _currentIndex = (_currentIndex + 1 + _queue.length) % _queue.length;
+      _currentIndex = (_currentIndex + 1) % _queue.length;
     } else {
       _currentIndex = (_currentIndex + 1) % _queue.length;
     }

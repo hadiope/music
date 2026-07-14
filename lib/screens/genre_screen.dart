@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../core/strings.dart';
 import '../providers/songs_provider.dart';
 import '../providers/player_provider.dart';
 import '../widgets/song_tile.dart';
@@ -11,13 +12,16 @@ class GenreScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(tProvider); // sync language
     final songsAsync = ref.watch(genreSongsProvider(genre));
     return Scaffold(
-      appBar: AppBar(title: Text('آهنگ‌های $genre')),
+      appBar: AppBar(title: Text('${T.lang == 'en' ? 'Songs of' : 'آهنگ‌های'} $genre')),
       body: songsAsync.when(
         data: (songs) {
           if (songs.isEmpty) {
-            return const Center(child: Text('هنوز آهنگی در این دسته نیست 🎵'));
+            return Center(
+              child: Text(T.lang == 'en' ? 'No songs in this category yet 🎵' : 'هنوز آهنگی در این دسته نیست 🎵'),
+            );
           }
           return ListView.separated(
             padding: const EdgeInsets.all(12),

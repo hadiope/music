@@ -55,7 +55,7 @@ class _LocalSongsScreenState extends ConsumerState<LocalSongsScreen> {
                 icon: _busy
                     ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
                     : const Icon(Icons.folder_open),
-                label: Text(T.addFromDevice),
+                label: Text(T.lang == 'en' ? 'Add from device' : T.addFromDevice),
               ),
             ),
           ),

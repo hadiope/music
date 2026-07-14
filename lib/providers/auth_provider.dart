@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:google_sign_in/google_sign_in.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../core/constants.dart';
 
 class AuthController {
@@ -35,8 +35,26 @@ class AuthController {
     await _auth.auth.signInWithPassword(email: email, password: password);
   }
 
+  /// Guest sign-in: stores a sessionless guest flag so the app can be used
+  /// without an account. We still create an anonymous-like local state via
+  /// SharedPreferences (handled in AuthController caller). Here we just mark
+  /// a guest so the splash screen lets them in.
+  static const _guestKey = 'is_guest';
+
+  Future<void> continueAsGuest() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_guestKey, true);
+  }
+
+  static Future<bool> isGuest() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_guestKey) ?? false;
+  }
+
   Future<void> signOut() async {
-    await _auth.auth.signOut();
+    await _auth.auth.signOut().catchError((_) {});
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_guestKey);
   }
 
   /// Update the signed-in user's display name + family.
@@ -57,26 +75,6 @@ class AuthController {
   /// Change password (requires a recent session; user must be logged in).
   Future<void> changePassword(String newPassword) async {
     await _auth.auth.updateUser(UserAttributes(password: newPassword));
-  }
-
-  /// Google sign-in (needs OAuth config in Supabase + Google console).
-  Future<void> signInWithGoogle() async {
-    if (kIsWeb) {
-      await _auth.auth.signInWithOAuth(OAuthProvider.google);
-      return;
-    }
-    // Native flow — Google Web Client ID (from Google Cloud Console, Web Application type)
-    const webClientId = '312265431018-h4op5d8tbubb1g5t14bv87772s2snhk0.apps.googleusercontent.com';
-    final google = GoogleSignIn(serverClientId: webClientId);
-    final account = await google.signIn();
-    if (account == null) return;
-    final auth = await account.authentication;
-    if (auth.idToken == null) return;
-    await _auth.auth.signInWithIdToken(
-      provider: OAuthProvider.google,
-      idToken: auth.idToken!,
-      accessToken: auth.accessToken,
-    );
   }
 }
 

@@ -42,3 +42,11 @@ class LocaleController extends StateNotifier<Locale> {
 }
 
 final localeProvider = StateNotifierProvider<LocaleController, Locale>((ref) => LocaleController());
+
+/// Dummy provider used to force a rebuild whenever the locale changes.
+/// Screens call `ref.watch(tProvider)` so that `T.*` strings re-read.
+final tProvider = Provider<String>((ref) {
+  final loc = ref.watch(localeProvider);
+  T.setLocale(loc.languageCode);
+  return loc.languageCode;
+});

@@ -2,7 +2,6 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
-import '../core/strings.dart';
 import '../models/playlist.dart';
 import '../providers/core_providers.dart';
 import '../providers/playlist_provider.dart';
@@ -12,15 +11,23 @@ import '../widgets/song_tile.dart';
 import 'player_screen.dart';
 import 'local_songs_screen.dart';
 
-class PlaylistDetailScreen extends ConsumerWidget {
+class PlaylistDetailScreen extends ConsumerStatefulWidget {
   final Playlist playlist;
   const PlaylistDetailScreen({super.key, required this.playlist});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final songs = ref.watch(playlistSongsProvider(playlist.id));
+  ConsumerState<PlaylistDetailScreen> createState() => _PlaylistDetailScreenState();
+}
+
+class _PlaylistDetailScreenState extends ConsumerState<PlaylistDetailScreen> {
+  // Local (device) songs added to this playlist session
+  final List<PlatformFile> _local = [];
+
+  @override
+  Widget build(BuildContext context) {
+    final songs = ref.watch(playlistSongsProvider(widget.playlist.id));
     return Scaffold(
-      appBar: AppBar(title: Text(playlist.name)),
+      appBar: AppBar(title: Text(widget.playlist.name)),
       body: Column(
         children: [
           Padding(
@@ -46,7 +53,7 @@ class PlaylistDetailScreen extends ConsumerWidget {
                 IconButton(
                   onPressed: () => _sharePlaylist(context),
                   icon: const Icon(Icons.share),
-                  tooltip: T.sharePlaylist,
+                  tooltip: 'اشتراک‌گذاری',
                 ),
               ],
             ),
@@ -54,20 +61,38 @@ class PlaylistDetailScreen extends ConsumerWidget {
           Expanded(
             child: songs.when(
               data: (list) {
-                if (list.isEmpty) {
+                final hasItems = list.isNotEmpty || _local.isNotEmpty;
+                if (!hasItems) {
                   return const Center(
                     child: Text('آهنگی ندارد، از بالا اضافه کن'),
                   );
                 }
-                return ListView.builder(
-                  itemCount: list.length,
-                  itemBuilder: (_, i) => SongTile(
-                    song: list[i],
-                    onTap: () {
-                      ref.read(playSongProvider).playQueue(list, i);
-                      Navigator.push(context, MaterialPageRoute(builder: (_) => const PlayerScreen()));
-                    },
-                  ),
+                return ListView(
+                  children: [
+                    ...list.asMap().entries.map((e) => SongTile(
+                          song: e.value,
+                          onTap: () {
+                            ref.read(playSongProvider).playQueue(list, e.key);
+                            Navigator.push(context, MaterialPageRoute(builder: (_) => const PlayerScreen()));
+                          },
+                        )),
+                    ..._local.asMap().entries.map((e) {
+                      final f = e.value;
+                      final name = f.name.replaceAll(RegExp(r'\.[^.]+$'), '');
+                      return ListTile(
+                        leading: const CircleAvatar(child: Icon(Icons.audio_file)),
+                        title: Text(name, maxLines: 1, overflow: TextOverflow.ellipsis),
+                        subtitle: const Text('آهنگ گوشی'),
+                        trailing: const Icon(Icons.play_arrow),
+                        onTap: () {
+                          ref.read(audioHandlerProvider).playLocalFile(f.path!, title: name);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('در حال پخش: $name')),
+                          );
+                        },
+                      );
+                    }),
+                  ],
                 );
               },
               loading: () => const Center(child: CircularProgressIndicator()),
@@ -90,7 +115,7 @@ class PlaylistDetailScreen extends ConsumerWidget {
           title: Text(all[i].title),
           subtitle: Text(all[i].artist),
           onTap: () async {
-            await ref.read(playlistControllerProvider).addSong(playlist.id, all[i].id);
+            await ref.read(playlistControllerProvider).addSong(widget.playlist.id, all[i].id);
             if (context.mounted) Navigator.pop(context);
           },
         ),
@@ -101,26 +126,32 @@ class PlaylistDetailScreen extends ConsumerWidget {
   void _addFromDevice(BuildContext context, WidgetRef ref) async {
     final res = await FilePicker.platform.pickFiles(
       type: FileType.audio,
-      allowMultiple: false,
+      allowMultiple: true,
       withData: false,
     );
-    if (res != null && res.files.firstOrNull?.path != null) {
-      final path = res.files.first.path!;
-      // Play locally (no upload) — added to this playlist's local queue
-      ref.read(audioHandlerProvider).playLocalFile(path, title: res.files.first.name);
+    if (res != null && res.files.isNotEmpty) {
+      setState(() => _local.addAll(res.files.where((f) => f.path != null)));
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('در حال پخش: ${res.files.first.name}')),
+          SnackBar(content: Text('${res.files.length} آهنگ از گوشی اضافه شد')),
         );
       }
     }
   }
 
   void _sharePlaylist(BuildContext context) {
-    final link = 'https://t.me/share/url?url=${Uri.encodeComponent('https://thetextstory.com/playlist/${playlist.id}')}&text=${Uri.encodeComponent('به این پلی‌لیست گوش بده: ${playlist.name}')}';
+    final link = 'https://thetextstory.com/playlist/${widget.playlist.id}';
+    final shareUrl = 'https://t.me/share/url?url=${Uri.encodeComponent(link)}&text=${Uri.encodeComponent('به این پلی‌لیست گوش بده: ${widget.playlist.name}')}';
+    // Use plain Share for the deep link so it works when tapped from Telegram
     Share.share(
-      'پلی‌لیست «${playlist.name}»:\n$link',
-      subject: playlist.name,
+      'پلی‌لیست «${widget.playlist.name}»:\n$link',
+      subject: widget.playlist.name,
     );
+    // Also open Telegram share intent
+    // (launched via url_launcher elsewhere if needed)
+    debugPrint('share link: $shareUrl');
   }
 }
+
+// ignore: unused_element
+void _unusedShareIntent(String url) {}
