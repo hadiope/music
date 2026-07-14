@@ -32,11 +32,52 @@ jobs:
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > /tmp/harmony_release.keystore
           echo "keystore decoded: $(ls -la /tmp/harmony_release.keystore | awk '{print $5}') bytes"
 
-      # Generate the Android platform files IN PLACE (keeps correct namespace from pubspec)
+      # Generate the Android platform files IN PLACE
       - name: Generate Android platform files
         run: |
           set -e
-          flutter create --platforms=android .
+          flutter create --platforms=android --org ir.iranseda .
+
+      # Force the exact applicationId / namespace / app label requested
+      - name: Set package id and app name
+        run: |
+          set -e
+          python3 - <<'PY'
+          import re, os, glob
+          PKG = "ir.iranseda.hadi"
+          LABEL = "iran seda"
+          # 1) app/build.gradle(.kts): applicationId + namespace
+          for p in ["android/app/build.gradle.kts", "android/app/build.gradle"]:
+              if os.path.isfile(p):
+                  s = open(p, encoding="utf-8").read()
+                  s = re.sub(r'applicationId\s*=\s*".*?"', f'applicationId = "{PKG}"', s)
+                  s = re.sub(r'applicationId\s+".*?"', f'applicationId "{PKG}"', s)
+                  s = re.sub(r'namespace\s*=\s*".*?"', f'namespace = "{PKG}"', s)
+                  s = re.sub(r'namespace\s+".*?"', f'namespace "{PKG}"', s)
+                  open(p, "w", encoding="utf-8").write(s)
+                  print("patched", p)
+          # 2) AndroidManifest: android:label
+          mf = "android/app/src/main/AndroidManifest.xml"
+          if os.path.isfile(mf):
+              s = open(mf, encoding="utf-8").read()
+              s = re.sub(r'android:label="[^"]*"', f'android:label="{LABEL}"', s, count=1)
+              open(mf, "w", encoding="utf-8").write(s)
+              print("patched label in manifest")
+          # 3) Move MainActivity to the new package path
+          old = glob.glob("android/app/src/main/kotlin/**/MainActivity.kt", recursive=True)
+          newdir = "android/app/src/main/kotlin/ir/iranseda/hadi"
+          os.makedirs(newdir, exist_ok=True)
+          if old:
+              content = open(old[0], encoding="utf-8").read()
+              content = re.sub(r'package\s+[\w.]+', f'package {PKG}', content)
+              open(os.path.join(newdir, "MainActivity.kt"), "w", encoding="utf-8").write(content)
+              # remove stale package dirs (example)
+              for f in old:
+                  if os.path.abspath(f) != os.path.abspath(os.path.join(newdir, "MainActivity.kt")):
+                      os.remove(f)
+              print("MainActivity moved to", newdir)
+          PY
+          echo "package id set to ir.iranseda.hadi, label 'iran seda'"
 
       # Accept Android SDK licenses + ensure platform is installed.
       # Writing license files directly is more reliable on CI than `sdkmanager --licenses`.
