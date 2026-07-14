@@ -113,7 +113,8 @@ class PlayerScreen extends ConsumerWidget {
                     return StreamBuilder<Duration?>(
                       stream: handler.durationStream,
                       builder: (context, durSnap) {
-                        final dur = durSnap.data ?? Duration.zero;
+                        // Prefer per-track duration from sequenceState (not whole queue)
+                        final dur = handler.currentDuration ?? durSnap.data ?? Duration.zero;
                         final max = dur.inMilliseconds.toDouble();
                         final value = pos.inMilliseconds.clamp(0, max == 0 ? 1 : max).toDouble();
                         return Column(

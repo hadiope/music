@@ -8,7 +8,8 @@ import '../core/theme.dart';
 import '../providers/auth_provider.dart';
 import '../providers/core_providers.dart';
 import '../providers/settings_provider.dart';
-import 'admin_upload_screen.dart';
+import 'playlist_detail_screen.dart';
+import 'local_songs_screen.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -47,8 +48,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   Future<void> _openTelegram() async {
     final uri = Uri.parse(AppConstants.telegramChannel);
-    if (await canLaunchUrl(uri)) {
+    try {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } catch (e) {
+      // Fallback: copy or open in browser
+      await launchUrl(uri, mode: LaunchMode.platformDefault);
     }
   }
 
@@ -133,7 +137,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           ),
 
           // Admin upload (for you to add music)
-          Card(
+          /*Card(
             margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
             child: ListTile(
               leading: const Icon(Icons.cloud_upload_outlined, color: AppColors.primary),
@@ -142,7 +146,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               trailing: const Icon(Icons.arrow_forward_ios),
               onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminUploadScreen())),
             ),
-          ),
+          ),*/
 
           const Divider(height: 28),
 

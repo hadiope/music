@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/settings_provider.dart';
 
-/// Lightweight i18n. Each string has a fa + en value. The provider below
-/// watches the locale and keeps T in sync so the whole UI flips instantly.
+/// Lightweight i18n. Each string has a fa + en value. Watch [tProvider]
+/// (which depends on localeProvider) so the whole UI flips instantly.
 class T {
   T();
   static String tr(String fa, String en) => _locale == 'en' ? en : fa;
@@ -46,16 +46,17 @@ class T {
   static String get localFiles => tr('فایل‌های دستگاه', 'Device files');
   static String get liked => tr('علاقه‌مندی‌ها', 'Liked');
   static String get about => tr('درباره Iranian Spotify', 'About Iranian Spotify');
-  static String get version => tr('نسخه ۱.۰.۰', 'Version 1.0.0');
+  static String get version => tr('نسخه ۱.۱.۰', 'Version 1.1.0');
   static String get welcomeBack => tr('خوش برگشتی', 'Welcome back');
   static String get createAccount => tr('حساب جدید بساز', 'Create account');
   static String get alreadyHave => tr('قبلاً ثبت‌نام کردی؟ وارد شو', 'Have an account? Log in');
   static String get noAccount => tr('حساب نداری؟ همین‌جا بساز', "Don't have an account? Sign up");
   static String get categories => tr('دسته‌بندی‌ها 🎭', 'Categories 🎭');
+  static String get sharePlaylist => tr('اشتراک پلی‌لیست', 'Share playlist');
 }
 
-/// Watches the locale and keeps T in sync. Watch this in screens that use T
-/// so they rebuild when the language changes.
+/// Watches the locale and keeps T in sync. Watch this in EVERY screen that uses T
+/// (call ref.watch(tProvider) once in build) so the UI rebuilds on language change.
 final tProvider = Provider<T>((ref) {
   final code = ref.watch(localeProvider).languageCode;
   T.setLocale(code);

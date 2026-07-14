@@ -6,23 +6,34 @@ import '../models/song.dart';
 class AudioPlayerHandler {
   final AudioPlayer player = AudioPlayer();
   List<Song> _queue = [];
+  int _currentIndex = 0;
+  bool _shuffle = false;
+  LoopMode _loop = LoopMode.off;
 
   List<Song> get queue => _queue;
+  int get currentIndex => _currentIndex;
 
   Stream<PlayerState> get playerStateStream => player.playerStateStream;
   Stream<Duration> get positionStream => player.positionStream;
+  // Current track duration (not whole queue). just_audio exposes it via
+  // sequenceState.currentSource?.duration once the track has loaded.
   Stream<Duration?> get durationStream => player.durationStream;
-  Stream<int?> get currentIndexStream => player.currentIndexStream;
+  Duration? get currentDuration {
+    final st = player.sequenceState;
+    if (st != null && st.currentSource != null) return st.currentSource!.duration;
+    return null;
+  }
 
   Song? get currentSong {
-    final i = player.currentIndex;
-    if (i == null || i < 0 || i >= _queue.length) return null;
-    return _queue[i];
+    if (_queue.isEmpty || _currentIndex < 0 || _currentIndex >= _queue.length) return null;
+    return _queue[_currentIndex];
   }
 
   /// Load a list of songs and start at [startIndex].
   Future<void> setQueue(List<Song> songs, {int startIndex = 0}) async {
-    _queue = songs;
+    if (songs.isEmpty) return;
+    _queue = List.from(songs);
+    _currentIndex = startIndex.clamp(0, songs.length - 1);
     final sources = songs
         .map((s) => AudioSource.uri(
               Uri.parse(s.audioUrl),
@@ -35,16 +46,22 @@ class AudioPlayerHandler {
               ),
             ))
         .toList();
-    await player.setAudioSource(
-      ConcatenatingAudioSource(children: sources),
-      initialIndex: startIndex,
-    );
-    play();
+    try {
+      await player.setAudioSource(
+        ConcatenatingAudioSource(children: sources),
+        initialIndex: _currentIndex,
+        initialPosition: Duration.zero,
+      );
+      await player.play();
+    } catch (e) {
+      // If playback fails (e.g. bad URL), still keep the queue so UI shows it.
+      debugPrint('playback error: $e');
+    }
   }
 
   /// Play a single local file (file:// or content:// URI picked by the user).
-  /// No upload — stays on device, perfect for personal playlists.
-  Future<void> playLocalFile(String path, {String title = 'آهنگ محلی', String artist = 'دستگاه'}) async {
+  Future<void> playLocalFile(String path,
+      {String title = 'آهنگ محلی', String artist = 'دستگاه'}) async {
     final song = Song(
       id: 'local_${path.hashCode}',
       title: title,
@@ -56,40 +73,82 @@ class AudioPlayerHandler {
       plays: 0,
     );
     _queue = [song];
-    await player.setAudioSource(
-      AudioSource.uri(
-        Uri.parse(song.audioUrl),
-        tag: MediaItem(
-          id: song.id,
-          title: song.title,
-          artist: song.artist,
+    _currentIndex = 0;
+    try {
+      await player.setAudioSource(
+        AudioSource.uri(
+          Uri.parse(song.audioUrl),
+          tag: MediaItem(
+            id: song.id,
+            title: song.title,
+            artist: song.artist,
+          ),
         ),
-      ),
-    );
-    play();
+      );
+      await player.play();
+    } catch (e) {
+      debugPrint('local playback error: $e');
+    }
   }
 
   Future<void> play() => player.play();
   Future<void> pause() => player.pause();
   Future<void> seek(Duration pos) => player.seek(pos);
-  Future<void> next() => player.seekToNext();
-  Future<void> previous() => player.seekToPrevious();
+
+  Future<void> next() async {
+    if (_queue.isEmpty) return;
+    if (_shuffle) {
+      _currentIndex = (_currentIndex + 1 + _queue.length) % _queue.length;
+    } else {
+      _currentIndex = (_currentIndex + 1) % _queue.length;
+    }
+    await _playIndex(_currentIndex);
+  }
+
+  Future<void> previous() async {
+    if (_queue.isEmpty) return;
+    // If more than 3s in, restart current track (like Spotify)
+    final pos = player.position;
+    if (pos.inSeconds > 3) {
+      await player.seek(Duration.zero);
+      await player.play();
+      return;
+    }
+    if (_shuffle) {
+      _currentIndex = (_currentIndex - 1 + _queue.length) % _queue.length;
+    } else {
+      _currentIndex = (_currentIndex - 1 + _queue.length) % _queue.length;
+    }
+    await _playIndex(_currentIndex);
+  }
+
+  Future<void> _playIndex(int i) async {
+    if (i < 0 || i >= _queue.length) return;
+    _currentIndex = i;
+    try {
+      await player.seek(Duration.zero, index: i);
+      await player.play();
+    } catch (e) {
+      debugPrint('seek error: $e');
+    }
+  }
 
   Future<void> setShuffle(bool on) async {
+    _shuffle = on;
     await player.setShuffleModeEnabled(on);
   }
 
   Future<void> cycleRepeat() async {
-    final mode = player.loopMode;
-    final next = mode == LoopMode.off
+    final next = _loop == LoopMode.off
         ? LoopMode.all
-        : mode == LoopMode.all
+        : _loop == LoopMode.all
             ? LoopMode.one
             : LoopMode.off;
+    _loop = next;
     await player.setLoopMode(next);
   }
 
-  LoopMode get loopMode => player.loopMode;
+  LoopMode get loopMode => _loop;
 
   void dispose() => player.dispose();
 }

@@ -40,6 +40,12 @@ class PlaylistDetailScreen extends ConsumerWidget {
                     label: const Text('از گوشی'),
                   ),
                 ),
+                const SizedBox(width: 10),
+                IconButton(
+                  onPressed: () => _sharePlaylist(context),
+                  icon: const Icon(Icons.share),
+                  tooltip: T.sharePlaylist,
+                ),
               ],
             ),
           ),
@@ -106,5 +112,13 @@ class PlaylistDetailScreen extends ConsumerWidget {
         );
       }
     }
+  }
+
+  void _sharePlaylist(BuildContext context) {
+    final link = 'https://t.me/share/url?url=${Uri.encodeComponent('https://thetextstory.com/playlist/${playlist.id}')}&text=${Uri.encodeComponent('به این پلی‌لیست گوش بده: ${playlist.name}')}';
+    Share.share(
+      'پلی‌لیست «${playlist.name}»:\n$link',
+      subject: playlist.name,
+    );
   }
 }

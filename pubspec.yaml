@@ -1,7 +1,7 @@
 name: harmony_music
 description: A professional Spotify-like music streaming app built with Flutter & Supabase.
 publish_to: 'none'
-version: 1.0.0+1
+version: 1.1.0+2
 
 environment:
   sdk: '>=3.0.0 <4.0.0'

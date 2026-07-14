@@ -1,0 +1,9 @@
+name = "harmony-telegram-bot"
+main = "worker.js"
+compatibility_date = "2024-09-01"
+
+# Secrets (set via `wrangler secret put` or dashboard):
+#   TELEGRAM_BOT_TOKEN
+#   SUPABASE_URL
+#   SUPABASE_SERVICE_ROLE_KEY
+#   ADMIN_TELEGRAM_ID
