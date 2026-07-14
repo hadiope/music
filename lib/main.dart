@@ -72,7 +72,7 @@ class HarmonyApp extends ConsumerWidget {
     T.setLocale(locale.languageCode);
 
     return MaterialApp(
-      title: 'Iranian Sedà',
+      title: 'iran seda',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
