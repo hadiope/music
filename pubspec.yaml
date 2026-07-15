@@ -39,8 +39,7 @@ dependencies:
   in_app_update: ^4.2.1
   intl: ^0.20.2
   app_links: ^7.2.1
-  on_audio_query: ^2.9.0
-
+  # NOTE: on_audio_query removed — incompatible with current AGP (namespace error).
 dev_dependencies:
   flutter_lints: ^4.0.0
 

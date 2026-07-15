@@ -1,13 +1,14 @@
+import 'dart:io';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:on_audio_query/on_audio_query.dart';
 import '../core/strings.dart';
 import '../providers/core_providers.dart';
-import '../widgets/net_image.dart';
 import 'player_screen.dart';
 
-/// Lists all audio tracks stored on the device (with permission) and plays
-/// them through the shared audio handler — a real on-device music player.
+/// Lets the user pick audio files from the device and play them through the
+/// shared audio handler — a lightweight on-device music player that avoids
+/// the heavy on_audio_query plugin (incompatible with the current AGP).
 class DeviceSongsScreen extends ConsumerStatefulWidget {
   const DeviceSongsScreen({super.key});
 
@@ -16,32 +17,20 @@ class DeviceSongsScreen extends ConsumerStatefulWidget {
 }
 
 class _DeviceSongsScreenState extends ConsumerState<DeviceSongsScreen> {
-  final OnAudioQuery _audioQuery = OnAudioQuery();
-  List<SongModel> _songs = [];
-  bool _loading = true;
-  bool _hasPermission = false;
+  final List<File> _files = [];
+  bool _loading = false;
   String? _error;
 
-  @override
-  void initState() {
-    super.initState();
-    _load();
-  }
-
-  Future<void> _load() async {
+  Future<void> _pick() async {
     setState(() => _loading = true);
     try {
-      _hasPermission = await _audioQuery.permissionsStatus();
-      if (!_hasPermission) {
-        _hasPermission = await _audioQuery.permissionsRequest();
-      }
-      if (_hasPermission) {
-        final list = await _audioQuery.querySongs(
-          sortType: SongSortType.TITLE,
-          orderType: OrderType.ASC_OR_SMALLER,
-          uriType: UriType.EXTERNAL,
-        );
-        if (mounted) setState(() => _songs = list);
+      final r = await FilePicker.platform.pickFiles(
+        type: FileType.audio,
+        allowMultiple: true,
+      );
+      if (r != null && r.files.isNotEmpty) {
+        final picked = r.files.where((f) => f.path != null).map((f) => File(f.path!)).toList();
+        if (mounted) setState(() => _files.addAll(picked));
       }
     } catch (e) {
       if (mounted) setState(() => _error = e.toString());
@@ -49,6 +38,8 @@ class _DeviceSongsScreenState extends ConsumerState<DeviceSongsScreen> {
       if (mounted) setState(() => _loading = false);
     }
   }
+
+  String _name(File f) => f.path.split('/').last;
 
   @override
   Widget build(BuildContext context) {
@@ -60,18 +51,22 @@ class _DeviceSongsScreenState extends ConsumerState<DeviceSongsScreen> {
           IconButton(
             icon: const Icon(Icons.refresh),
             tooltip: T.reload,
-            onPressed: _load,
+            onPressed: _pick,
           ),
         ],
       ),
       body: _buildBody(),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _loading ? null : _pick,
+        tooltip: T.addAudioFile,
+        child: _loading
+            ? const SizedBox(height: 22, width: 22, child: CircularProgressIndicator(strokeWidth: 2))
+            : const Icon(Icons.add),
+      ),
     );
   }
 
   Widget _buildBody() {
-    if (_loading) {
-      return const Center(child: CircularProgressIndicator());
-    }
     if (_error != null) {
       return Center(
         child: Padding(
@@ -80,63 +75,39 @@ class _DeviceSongsScreenState extends ConsumerState<DeviceSongsScreen> {
         ),
       );
     }
-    if (!_hasPermission) {
+    if (_files.isEmpty) {
       return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.lock_outline, size: 64, color: Colors.grey),
+            const Icon(Icons.music_note, size: 64, color: Colors.grey),
             const SizedBox(height: 12),
             Text(
-              T.storagePermissionRequired,
+              T.noDeviceSongs,
               textAlign: TextAlign.center,
               style: const TextStyle(color: Colors.grey),
             ),
             const SizedBox(height: 16),
             FilledButton.icon(
-              onPressed: _load,
-              icon: const Icon(Icons.security),
-              label: Text(T.grantPermission),
+              onPressed: _loading ? null : _pick,
+              icon: const Icon(Icons.audio_file),
+              label: Text(T.addAudioFile),
             ),
           ],
         ),
       );
     }
-    if (_songs.isEmpty) {
-      return Center(
-        child: Text(
-          T.noDeviceSongs,
-          style: const TextStyle(color: Colors.grey),
-        ),
-      );
-    }
     return ListView.builder(
-      itemCount: _songs.length,
+      itemCount: _files.length,
       itemBuilder: (_, i) {
-        final s = _songs[i];
+        final f = _files[i];
         return ListTile(
-          leading: QueryArtworkWidget(
-            id: s.id,
-            type: ArtworkType.AUDIO,
-            artworkHeight: 48,
-            artworkWidth: 48,
-            borderRadius: 8,
-            nullArtworkWidget: const CircleAvatar(child: Icon(Icons.music_note)),
-          ),
-          title: Text(s.title, maxLines: 1, overflow: TextOverflow.ellipsis),
-          subtitle: Text(
-            s.artist ?? T.unknownArtist,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
+          leading: const CircleAvatar(child: Icon(Icons.music_note)),
+          title: Text(_name(f), maxLines: 1, overflow: TextOverflow.ellipsis),
           trailing: const Icon(Icons.play_arrow),
           onTap: () async {
             final handler = ref.read(audioHandlerProvider);
-            final ok = await handler.playLocalFile(
-              s.uri,
-              title: s.title,
-              artist: s.artist ?? '',
-            );
+            final ok = await handler.playLocalFile(f.path, title: _name(f));
             if (ok && mounted) {
               Navigator.push(context, MaterialPageRoute(builder: (_) => const PlayerScreen()));
             } else if (mounted) {
