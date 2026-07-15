@@ -117,51 +117,12 @@ jobs:
 
       # Set SDK versions (signing disabled for now — unsigned APK is fine for
       # sideload/testing; re-enable once a valid keystore secret is provided).
+      # sign_apk.py sets compileSdk=36 on the app module AND injects a correct
+      # Kotlin-DSL subprojects block. Without KEYSTORE_PASSWORD/KEY_ALIAS it
+      # skips the signing injection but still configures the SDK versions.
       - name: Set SDK versions
         run: |
-          python3 - <<'PY'
-          import os, re
-          ROOT = os.getcwd()
-          APP = os.path.join(ROOT, "android", "app")
-          for p in ["build.gradle.kts", "build.gradle"]:
-              PATH = os.path.join(APP, p)
-              if os.path.isfile(PATH):
-                  s = open(PATH, encoding="utf-8").read()
-                  s = re.sub(r"compileSdk\s*=.*", "compileSdk = 36", s)
-                  s = re.sub(r"targetSdk\s*=.*", "targetSdk = 36", s)
-                  s = re.sub(r"minSdk\s*=.*", "minSdk = 24", s)
-                  s = re.sub(r"compileSdkVersion\s+.*", "compileSdkVersion 36", s)
-                  s = re.sub(r"targetSdkVersion\s+.*", "targetSdkVersion 36", s)
-                  s = re.sub(r"minSdkVersion\s+.*", "minSdkVersion 24", s)
-                  open(PATH, "w", encoding="utf-8").write(s)
-                  print("patched", p)
-          # force subprojects compileSdk via root file
-          for p in ["build.gradle.kts", "build.gradle"]:
-              PATH = os.path.join(ROOT, "android", p)
-              if os.path.isfile(PATH):
-                  s = open(PATH, encoding="utf-8").read()
-                  s = re.sub(r"\nsubprojects\s*\{.*\}\s*$", "\n", s, flags=re.DOTALL)
-                  block = ("\nsubprojects {\n    afterEvaluate { project ->\n"
-                           "        if (project.hasProperty('android')) {\n"
-                           "            project.android { compileSdkVersion 36 }\n        }\n    }\n}\n")
-                  s = s.rstrip() + block
-                  open(PATH, "w", encoding="utf-8").write(s)
-                  print("patched root", p)
-          PROPS = os.path.join(ROOT, "android", "gradle.properties")
-          if os.path.isfile(PROPS):
-              lines = open(PROPS, encoding="utf-8").readlines()
-              want = {"android.compileSdk": "36", "android.targetSdk": "36", "android.minSdk": "24"}
-              out = []
-              for line in lines:
-                  key = line.split("=", 1)[0].strip()
-                  if key in want:
-                      out.append("%s=%s\n" % (key, want[key])); del want[key]
-                  else:
-                      out.append(line)
-              for k, v in want.items(): out.append("%s=%s\n" % (k, v))
-              open(PROPS, "w", encoding="utf-8").writelines(out)
-          print("DONE_CONFIG")
-          PY
+          python3 .github/workflows/sign_apk.py
           echo "sdk configured (no signing)"
 
       - name: Get dependencies
