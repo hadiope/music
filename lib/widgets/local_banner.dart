@@ -5,18 +5,23 @@ import 'package:url_launcher/url_launcher.dart';
 class LocalBanner extends StatelessWidget {
   const LocalBanner({super.key});
 
+  // Deep link to the Shad.ir TextStory page.
   static const String _link = 'shad://l.shad.ir/TextStory';
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () async {
-        // shad:// is proprietary; open via https so a browser/site can handle it
-        final uri = Uri.parse(_link.startsWith('shad://')
-            ? _link.replaceFirst('shad://', 'https://')
-            : _link);
-        if (await canLaunchUrl(uri)) {
-          await launchUrl(uri, mode: LaunchMode.externalApplication);
+        // Try the shad:// deep link first (opens the Shad app if installed),
+        // fall back to the https version in a browser otherwise.
+        final shadUri = Uri.parse(_link);
+        if (await canLaunchUrl(shadUri)) {
+          await launchUrl(shadUri, mode: LaunchMode.externalApplication);
+        } else {
+          final webUri = Uri.parse(_link.replaceFirst('shad://', 'https://'));
+          if (await canLaunchUrl(webUri)) {
+            await launchUrl(webUri, mode: LaunchMode.externalApplication);
+          }
         }
       },
       child: Padding(

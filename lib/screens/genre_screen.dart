@@ -21,7 +21,7 @@ class GenreScreen extends ConsumerWidget {
         data: (songs) {
           if (songs.isEmpty) {
             return Center(
-              child: Text(T.lang == 'en' ? 'No songs in this category yet 🎵' : 'هنوز آهنگی در این دسته نیست 🎵'),
+              child: Text(T.noSongsInGenre),
             );
           }
           return ListView.separated(
@@ -38,7 +38,7 @@ class GenreScreen extends ConsumerWidget {
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, __) => Center(child: Text('خطا: $e')),
+        error: (e, __) => Center(child: Text('${T.errorPrefix}$e')),
       ),
     );
   }

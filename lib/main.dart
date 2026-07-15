@@ -23,7 +23,7 @@ Future<void> main() async {
   try {
     await JustAudioBackground.init(
       androidNotificationChannelId: 'com.harmony.music.channel.audio',
-      androidNotificationChannelName: 'Iranian Sedà',
+      androidNotificationChannelName: 'Iran Seda',
       androidNotificationOngoing: true,
     );
   } catch (e) {
@@ -90,6 +90,8 @@ void _handleLink(Uri? link) {
     id = s.replaceFirst('iranseda://playlist/', '');
   } else if (s.contains('/playlist/')) {
     id = s.split('/playlist/').last;
+    // strip any trailing query/fragment (e.g. ?utm=...)
+    id = id.split('?').first.split('#').first;
   }
   if (id != null && id.isNotEmpty) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -137,7 +139,7 @@ class _HarmonyAppState extends ConsumerState<HarmonyApp> with WidgetsBindingObse
 
     return MaterialApp(
       navigatorKey: navigatorKey,
-      title: 'Iranian Sedà',
+      title: 'Iran Seda',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
@@ -176,7 +178,7 @@ class _SetupNeededScreen extends StatelessWidget {
             children: const [
               Icon(Icons.settings_suggest, size: 72, color: Color(0xFF1DB954)),
               SizedBox(height: 20),
-              Text('Iranian Sedà', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+              Text('Iran Seda', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
               SizedBox(height: 16),
               Text(
                 'اپ با موفقیت نصب شد ✅\n\nبرای فعال شدن آهنگ‌ها و ورود،\nباید اطلاعات Supabase را در فایل\nlib/core/constants.dart وارد کنی\nو دوباره build بگیری.',

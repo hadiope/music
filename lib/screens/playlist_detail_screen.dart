@@ -130,7 +130,7 @@ class _PlaylistDetailScreenState extends ConsumerState<PlaylistDetailScreen> {
                 );
               },
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, __) => Center(child: Text('خطا: $e')),
+              error: (e, __) => Center(child: Text('${T.errorPrefix}$e')),
             ),
           ),
         ],
@@ -174,15 +174,17 @@ class _PlaylistDetailScreenState extends ConsumerState<PlaylistDetailScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(T.lang == 'en'
               ? '${picked.length} device songs added'
-              : '${picked.length} آهنگ از گوشی اضافه شد')),
+              : T.addedFromDevice.replaceAll('{n}', picked.length.toString()))),
         );
       }
     }
   }
 
   void _sharePlaylist(BuildContext context) {
-    // Deep link opens the app straight into this playlist via uni_links.
-    final link = 'iranseda://playlist/${widget.playlist.id}';
+    // Deep link opens the app straight into this playlist.
+    // https link so Telegram / browsers can open it; the app's Android
+    // App Link / intent-filter catches it and jumps into the playlist.
+    final link = 'https://thetextstory.com/playlist/${widget.playlist.id}';
     Share.share(
       '${T.lang == 'en' ? 'Playlist' : 'پلی‌لیست'} «${widget.playlist.name}»:\n$link',
       subject: widget.playlist.name,

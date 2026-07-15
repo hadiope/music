@@ -64,7 +64,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       await ref.read(authControllerProvider).updateName(name);
       setState(() { _msg = T.nameSaved; _msgOk = true; });
     } catch (e) {
-      setState(() { _msg = 'خطا: ${e.toString()}'; _msgOk = false; });
+      setState(() { _msg = T.errGeneric.replaceAll('{e}', e.toString()); _msgOk = false; });
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -83,9 +83,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       _newPassCtl.clear();
       setState(() { _msg = T.passChanged; _msgOk = true; });
     } on AuthException catch (e) {
-      setState(() { _msg = 'خطا: ${e.message}'; _msgOk = false; });
+      setState(() { _msg = T.errGeneric.replaceAll('{e}', e.message); _msgOk = false; });
     } catch (e) {
-      setState(() { _msg = 'خطا: ${e.toString()}'; _msgOk = false; });
+      setState(() { _msg = T.errGeneric.replaceAll('{e}', e.toString()); _msgOk = false; });
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -200,7 +200,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   width: double.infinity,
                   child: FilledButton.tonal(
                     onPressed: _saving ? null : _changePassword,
-                    child: Text(T.lang == 'en' ? 'Change password' : 'تغییر رمز عبور'),
+                    child: Text(T.changePassBtn),
                   ),
                 ),
               ],
@@ -238,7 +238,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               value: locale.languageCode,
               underline: const SizedBox.shrink(),
               items: const [
-                DropdownMenuItem(value: 'fa', child: Text('فارسی')),
+                DropdownMenuItem(value: 'fa', child: Text(T.persian)),
                 DropdownMenuItem(value: 'en', child: Text('English')),
               ],
               onChanged: (v) => ref.read(localeProvider.notifier).set(v ?? 'fa'),

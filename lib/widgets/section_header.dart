@@ -14,7 +14,7 @@ class SectionHeader extends StatelessWidget {
         children: [
           Text(title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
           if (onSeeAll != null)
-            TextButton(onPressed: onSeeAll, child: const Text('همه')),
+            TextButton(onPressed: onSeeAll, child: Text(T.seeAll)),
         ],
       ),
     );

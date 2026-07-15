@@ -9,10 +9,20 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <!-- Pick audio files from device storage -->
     <uses-permission android:name="android.permission.READ_MEDIA_AUDIO"/>
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32"/>
 
+    <!--
+      Package name for this app: ir.iranseda.hadi
+      Set it in android/app/build.gradle:
+        defaultConfig {
+            applicationId "ir.iranseda.hadi"
+            ...
+        }
+      and keep android:label="Iran Senda" (display name shown to users).
+    -->
     <application
-        android:label="Iranian Sedà"
+        android:label="Iran Seda"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
 

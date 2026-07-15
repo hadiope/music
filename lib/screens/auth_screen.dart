@@ -21,11 +21,11 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
 
   Future<void> _submit() async {
     if (_email.text.trim().isEmpty || _password.text.trim().length < 6) {
-      setState(() => _error = 'ایمیل و رمز عبور (حداقل ۶ کاراکتر) را وارد کن');
+      setState(() => _error = T.authFillFields);
       return;
     }
     if (!_isLogin && _name.text.trim().isEmpty) {
-      setState(() => _error = 'لطفاً نام و نام خانوادگی خود را وارد کن');
+      setState(() => _error = T.authFillName);
       return;
     }
     setState(() { _loading = true; _error = null; });
@@ -141,12 +141,12 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                     shaderCallback: (b) => LinearGradient(
                       colors: [AppColors.primary, Colors.tealAccent],
                     ).createShader(b),
-                    child: const Text('Iranian Sedà',
+                    child: const Text('Iran Seda',
                         textAlign: TextAlign.center,
                         style: TextStyle(fontSize: 30, fontWeight: FontWeight.w900, color: Colors.white)),
                   ),
                   const SizedBox(height: 6),
-                  Text(_isLogin ? 'وارد حساب کاربری خود شوید' : 'حساب جدید خود را بسازید',
+                  Text(_isLogin ? T.loginHint : T.signUpHint,
                       textAlign: TextAlign.center, style: TextStyle(color: Theme.of(context).hintColor)),
                   const SizedBox(height: 30),
 
@@ -161,7 +161,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                           controller: _name,
                           textInputAction: TextInputAction.next,
                           decoration: const InputDecoration(
-                            labelText: 'نام و نام خانوادگی',
+                            labelText: T.fullNameLabel,
                             prefixIcon: Icon(Icons.person_outline),
                           ),
                         ),
@@ -175,7 +175,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                     keyboardType: TextInputType.emailAddress,
                     textInputAction: TextInputAction.next,
                     decoration: const InputDecoration(
-                      labelText: 'ایمیل',
+                      labelText: T.emailLabel,
                       prefixIcon: Icon(Icons.email_outlined),
                     ),
                   ),
@@ -184,7 +184,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                     controller: _password,
                     obscureText: _obscure,
                     decoration: InputDecoration(
-                      labelText: 'رمز عبور',
+                      labelText: T.passwordLabel,
                       prefixIcon: const Icon(Icons.lock_outline),
                       suffixIcon: IconButton(
                         icon: Icon(_obscure ? Icons.visibility : Icons.visibility_off),
@@ -212,13 +212,13 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                     ),
                     child: _loading
                         ? const SizedBox(height: 22, width: 22, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black))
-                        : Text(_isLogin ? 'ورود' : 'ثبت‌نام', style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
+                        : Text(_isLogin ? T.loginBtn : T.signUpBtn, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
                   ),
                   const SizedBox(height: 14),
                   Row(
                     children: [
                       Expanded(child: Divider(color: Theme.of(context).dividerColor)),
-                      const Padding(padding: EdgeInsets.symmetric(horizontal: 10), child: Text('یا', style: TextStyle(fontSize: 12))),
+                      Padding(padding: const EdgeInsets.symmetric(horizontal: 10), child: Text(T.or, style: const TextStyle(fontSize: 12))),
                       Expanded(child: Divider(color: Theme.of(context).dividerColor)),
                     ],
                   ),
@@ -226,7 +226,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                   OutlinedButton.icon(
                     onPressed: _loading ? null : _google,
                     icon: const Icon(Icons.g_mobiledata),
-                    label: const Text('ورود با گوگل'),
+                    label: const Text(T.googleSignIn),
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 13),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
@@ -236,7 +236,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                   OutlinedButton.icon(
                     onPressed: _loading ? null : _guest,
                     icon: const Icon(Icons.person_outline),
-                    label: const Text('ورود به عنوان مهمان'),
+                    label: const Text(T.guestSignIn),
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 13),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
@@ -245,7 +245,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                   const SizedBox(height: 18),
                   TextButton(
                     onPressed: () => setState(() => _isLogin = !_isLogin),
-                    child: Text(_isLogin ? 'حساب نداری؟ همین‌جا بساز 🎵' : 'قبلاً ثبت‌نام کردی؟ وارد شو'),
+                    child: Text(_isLogin ? T.noAccount : T.hasAccount),
                   ),
                 ],
               ),

@@ -1,6 +1,7 @@
 import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_background/just_audio_background.dart';
 import '../models/song.dart';
+import '../core/strings.dart';
 import 'package:flutter/foundation.dart';
 
 /// Wraps just_audio + background playback (notification / lock screen controls).
@@ -62,24 +63,41 @@ class AudioPlayerHandler {
     _queue = playable;
     _currentIndex = startIndex.clamp(0, playable.length - 1);
     _indexNotifier.value = _currentIndex;
-    final sources = playable
-        .map((s) => AudioSource.uri(
-              Uri.parse(s.audioUrl),
-              tag: MediaItem(
-                id: s.id,
-                title: s.title,
-                artist: s.artist,
-                album: s.album ?? '',
-                artUri: s.coverUrl.isNotEmpty ? Uri.parse(s.coverUrl) : null,
-              ),
-            ))
-        .toList();
     try {
-      await player.setAudioSource(
-        ConcatenatingAudioSource(children: sources),
-        initialIndex: _currentIndex,
-        initialPosition: Duration.zero,
-      );
+      if (playable.length == 1) {
+        // Single song — play directly (more robust than a 1-item concat).
+        final s = playable[_currentIndex];
+        await player.setAudioSource(
+          AudioSource.uri(
+            Uri.parse(s.audioUrl),
+            tag: MediaItem(
+              id: s.id,
+              title: s.title,
+              artist: s.artist,
+              album: s.album ?? '',
+              artUri: s.coverUrl.isNotEmpty ? Uri.parse(s.coverUrl) : null,
+            ),
+          ),
+        );
+      } else {
+        final sources = playable
+            .map((s) => AudioSource.uri(
+                  Uri.parse(s.audioUrl),
+                  tag: MediaItem(
+                    id: s.id,
+                    title: s.title,
+                    artist: s.artist,
+                    album: s.album ?? '',
+                    artUri: s.coverUrl.isNotEmpty ? Uri.parse(s.coverUrl) : null,
+                  ),
+                ))
+            .toList();
+        await player.setAudioSource(
+          ConcatenatingAudioSource(children: sources),
+          initialIndex: _currentIndex,
+          initialPosition: Duration.zero,
+        );
+      }
       if (_shuffle) {
         await player.setShuffleModeEnabled(true);
       }
@@ -93,7 +111,7 @@ class AudioPlayerHandler {
 
   /// Play a single local file (file:// or content:// URI picked by the user).
   Future<bool> playLocalFile(String path,
-      {String title = 'آهنگ محلی', String artist = 'دستگاه'}) async {
+      {String title = T.localSongTitleDefault, String artist = T.localSongArtistDefault}) async {
     final uri = (path.startsWith('http') ||
             path.startsWith('file://') ||
             path.startsWith('content://'))

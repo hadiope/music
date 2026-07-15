@@ -30,7 +30,7 @@ class _LocalSongsScreenState extends ConsumerState<LocalSongsScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('خطا: $e')),
+          SnackBar(content: Text('${T.errorPrefix}$e')),
         );
       }
     } finally {
@@ -84,7 +84,7 @@ class _LocalSongsScreenState extends ConsumerState<LocalSongsScreen> {
                         onTap: () {
                           ref.read(audioHandlerProvider).playLocalFile(f.path!, title: _name(f));
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('در حال پخش: ${_name(f)}')),
+                            SnackBar(content: Text(T.playingPrefix + _name(f))),
                           );
                         },
                       );

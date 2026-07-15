@@ -73,13 +73,15 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
                         IconButton(
                           icon: const Icon(Icons.share),
                           onPressed: () => Share.share(
-                            'به این آهنگ گوش بده: ${song.title} - ${song.artist}\n'
-                            'از اپ Iranian Sedà 🎧\nکانال ما: ${AppConstants.telegramChannel}',
+                            T.shareText
+                                .replaceAll('{title}', song.title)
+                                .replaceAll('{artist}', song.artist)
+                                .replaceAll('{channel}', AppConstants.telegramChannel),
                           ),
                         ),
                         IconButton(
                           icon: const Icon(Icons.lyrics_outlined),
-                          tooltip: 'متن آهنگ',
+                          tooltip: T.lyricsTooltip,
                           onPressed: () => showModalBottomSheet(
                             context: context,
                             builder: (_) => DraggableScrollableSheet(

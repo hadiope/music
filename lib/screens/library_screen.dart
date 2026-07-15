@@ -12,6 +12,7 @@ import 'player_screen.dart';
 import 'playlist_detail_screen.dart';
 import 'local_songs_screen.dart';
 import 'genre_screen.dart';
+import 'device_songs_screen.dart';
 
 class LibraryScreen extends ConsumerWidget {
   const LibraryScreen({super.key});
@@ -35,6 +36,14 @@ class LibraryScreen extends ConsumerWidget {
           ]),
           actions: [
             IconButton(
+              icon: const Icon(Icons.audiotrack),
+              tooltip: T.lang == 'en' ? 'Device songs' : 'آهنگ‌های گوشی',
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const DeviceSongsScreen()),
+              ),
+            ),
+            IconButton(
               icon: const Icon(Icons.folder_open),
               tooltip: T.addFromDevice,
               onPressed: () => Navigator.push(
@@ -51,30 +60,6 @@ class LibraryScreen extends ConsumerWidget {
         ),
         body: Column(
           children: [
-            // Genre chips (same categories shown in search)
-            SizedBox(
-              height: 44,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                separatorBuilder: (_, __) => const SizedBox(width: 8),
-                itemCount: genresList.length,
-                itemBuilder: (_, i) {
-                  final g = genresList[i];
-                  return GestureDetector(
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => GenreScreen(genre: g.name)),
-                    ),
-                    child: Chip(
-                      label: Text(g.name),
-                      backgroundColor: AppColors.primary.withOpacity(0.15),
-                      labelStyle: const TextStyle(color: AppColors.primary),
-                    ),
-                  );
-                },
-              ),
-            ),
             const Divider(height: 1),
             Expanded(
               child: TabBarView(
@@ -108,7 +93,7 @@ class LibraryScreen extends ConsumerWidget {
                             ),
                           ),
                     loading: () => const Center(child: CircularProgressIndicator()),
-                    error: (e, __) => Center(child: Text('خطا: $e')),
+                    error: (e, __) => Center(child: Text(T.errGeneric.replaceAll('{e}', e.toString()))),
                   ),
                   _songList(context, ref, history),
                 ],
@@ -136,7 +121,7 @@ class LibraryScreen extends ConsumerWidget {
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, __) => Center(child: Text('خطا: $e')),
+      error: (e, __) => Center(child: Text(T.errGeneric.replaceAll('{e}', e.toString()))),
     );
   }
 

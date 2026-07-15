@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../core/genres.dart';
 import '../core/strings.dart';
 import '../providers/songs_provider.dart';
@@ -57,7 +58,10 @@ class SearchScreen extends ConsumerWidget {
                       width: 88,
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(14),
-                        image: DecorationImage(image: NetworkImage(g.imageUrl), fit: BoxFit.cover),
+                        image: DecorationImage(
+                          image: CachedNetworkImageProvider(g.imageUrl),
+                          fit: BoxFit.cover,
+                        ),
                       ),
                       alignment: Alignment.center,
                       child: Container(
@@ -99,7 +103,7 @@ class SearchScreen extends ConsumerWidget {
                 );
               },
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, __) => Center(child: Text('خطا: $e')),
+              error: (e, __) => Center(child: Text('${T.errorPrefix}$e')),
             ),
           ),
         ],

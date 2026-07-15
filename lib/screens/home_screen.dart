@@ -59,13 +59,6 @@ class HomeScreen extends ConsumerWidget {
                 child: LocalBanner(),
               ),
             ),
-            // Server-driven promo banners (from `banners` table)
-            const SliverToBoxAdapter(
-              child: Padding(
-                padding: EdgeInsets.only(top: 12),
-                child: _BannersSlider(),
-              ),
-            ),
             // Genre cards (Iranian categories)
             SliverToBoxAdapter(
               child: SectionHeader(title: T.categories),
@@ -141,7 +134,7 @@ class HomeScreen extends ConsumerWidget {
                         ),
                 ),
                 loading: () => const SizedBox(height: 200, child: Center(child: CircularProgressIndicator())),
-                error: (e, __) => Padding(padding: const EdgeInsets.all(16), child: Text('خطا: $e')),
+                error: (e, __) => Padding(padding: const EdgeInsets.all(16), child: Text('${T.errorPrefix}$e')),
               ),
             ),
             // Popular
@@ -162,7 +155,7 @@ class HomeScreen extends ConsumerWidget {
                 ),
               ),
               loading: () => const SliverToBoxAdapter(child: Center(child: Padding(padding: EdgeInsets.all(20), child: CircularProgressIndicator()))),
-              error: (e, __) => SliverToBoxAdapter(child: Padding(padding: const EdgeInsets.all(16), child: Text('خطا: $e'))),
+              error: (e, __) => SliverToBoxAdapter(child: Padding(padding: const EdgeInsets.all(16), child: Text('${T.errorPrefix}$e'))),
             ),
             const SliverToBoxAdapter(child: SizedBox(height: 24)),
           ],

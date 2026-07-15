@@ -72,7 +72,7 @@ export default {
     SUPABASE_URL = env.SUPABASE_URL;
     SUPABASE_KEY = env.SUPABASE_SERVICE_ROLE_KEY;
     ADMIN_ID = Number(env.ADMIN_TELEGRAM_ID);
-    CHANNEL_ID = env.CHANNEL_ID || '@Thetextstory';
+    CHANNEL_ID = env.CHANNEL_ID || '@thetextstory';
     let u;
     try { u = await request.json(); } catch { return new Response('bad'); }
     const msg = u.message;

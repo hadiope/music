@@ -6,7 +6,7 @@ class AppConstants {
   static const String supabaseAnonKey = 'sb_publishable_ODyiDbPZyJY6sxZUMQ4F0Q_USMA1Nex';
 
   // === Your Telegram channel (change this!) ===
-  static const String telegramChannel = 'https://t.me/thetextstory';
+  static const String telegramChannel = 'tg://resolve?domain=thetextstory';
 
   // Storage bucket name for audio + covers
   static const String musicBucket = 'music';
