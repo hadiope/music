@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/strings.dart';
+import '../core/genres.dart';
 import '../providers/likes_provider.dart';
 import '../providers/playlist_provider.dart';
 import '../providers/player_provider.dart';
@@ -8,6 +9,7 @@ import '../widgets/song_tile.dart';
 import 'player_screen.dart';
 import 'playlist_detail_screen.dart';
 import 'local_songs_screen.dart';
+import 'genre_screen.dart';
 
 class LibraryScreen extends ConsumerWidget {
   const LibraryScreen({super.key});

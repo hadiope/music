@@ -117,7 +117,7 @@ class HomeScreen extends ConsumerWidget {
             ),
             // New releases
             SliverToBoxAdapter(
-              child: SectionHeader(title: T.lang == 'en' ? '${T.newReleases} 🆕' : '${T.newReleases} 🆕'),
+              child: SectionHeader(title: '${T.newReleases} 🆕'),
             ),
             SliverToBoxAdapter(
               child: newReleases.when(
@@ -145,7 +145,7 @@ class HomeScreen extends ConsumerWidget {
             ),
             // Popular
             SliverToBoxAdapter(
-              child: SectionHeader(title: T.lang == 'en' ? '${T.popular} 🔥' : '${T.popular} 🔥'),
+              child: SectionHeader(title: '${T.popular} 🔥'),
             ),
             popular.when(
               data: (songs) => SliverList(

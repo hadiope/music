@@ -94,7 +94,7 @@ void _handleLink(String? link) {
       if (ctx != null) {
         Navigator.of(ctx).push(
           MaterialPageRoute(
-            builder: (_) => PlaylistDetailScreen(playlist: Playlist(id: id!, name: T.lang == 'en' ? 'Playlist' : 'پلی‌لیست')),
+            builder: (_) => PlaylistDetailScreen(playlist: Playlist(id: id!, userId: '', name: T.lang == 'en' ? 'Playlist' : 'پلی‌لیست')),
           ),
         );
       }
