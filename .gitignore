@@ -21,3 +21,4 @@ android/app/release/
 
 # Misc
 .DS_Store
+supabase/.temp/
