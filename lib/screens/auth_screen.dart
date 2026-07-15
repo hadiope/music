@@ -161,7 +161,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                         TextField(
                           controller: _name,
                           textInputAction: TextInputAction.next,
-                          decoration: const InputDecoration(
+                          decoration: InputDecoration(
                             labelText: T.fullNameLabel,
                             prefixIcon: Icon(Icons.person_outline),
                           ),
@@ -175,7 +175,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                     controller: _email,
                     keyboardType: TextInputType.emailAddress,
                     textInputAction: TextInputAction.next,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: T.emailLabel,
                       prefixIcon: Icon(Icons.email_outlined),
                     ),
@@ -227,7 +227,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                   OutlinedButton.icon(
                     onPressed: _loading ? null : _google,
                     icon: const Icon(Icons.g_mobiledata),
-                    label: const Text(T.googleSignIn),
+                    label: Text(T.googleSignIn),
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 13),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
@@ -237,7 +237,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                   OutlinedButton.icon(
                     onPressed: _loading ? null : _guest,
                     icon: const Icon(Icons.person_outline),
-                    label: const Text(T.guestSignIn),
+                    label: Text(T.guestSignIn),
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 13),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
