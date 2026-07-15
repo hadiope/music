@@ -62,7 +62,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     setState(() { _saving = true; _msg = null; });
     try {
       await ref.read(authControllerProvider).updateName(name);
-      setState(() { _msg = T.lang == 'en' ? 'Name saved' : 'نام با موفقیت ذخیره شد'; _msgOk = true; });
+      setState(() { _msg = T.nameSaved; _msgOk = true; });
     } catch (e) {
       setState(() { _msg = 'خطا: ${e.toString()}'; _msgOk = false; });
     } finally {
@@ -73,7 +73,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   Future<void> _changePassword() async {
     final newP = _newPassCtl.text.trim();
     if (newP.length < 6) {
-      setState(() { _msg = T.lang == 'en' ? 'Password must be at least 6 characters' : 'رمز جدید حداقل ۶ کاراکتر باشد'; _msgOk = false; });
+      setState(() { _msg = T.passMin; _msgOk = false; });
       return;
     }
     setState(() { _saving = true; _msg = null; });
@@ -81,7 +81,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       await ref.read(authControllerProvider).changePassword(newP);
       _oldPassCtl.clear();
       _newPassCtl.clear();
-      setState(() { _msg = T.lang == 'en' ? 'Password changed' : 'رمز عبور با موفقیت تغییر کرد'; _msgOk = true; });
+      setState(() { _msg = T.passChanged; _msgOk = true; });
     } on AuthException catch (e) {
       setState(() { _msg = 'خطا: ${e.message}'; _msgOk = false; });
     } catch (e) {
@@ -106,7 +106,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: Text(T.lang == 'en' ? 'Profile & Settings' : 'پروفایل و تنظیمات')),
+      appBar: AppBar(title: Text(T.profileSettings)),
       body: ListView(
         children: [
           const SizedBox(height: 20),
@@ -134,8 +134,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             color: const Color(0xFF229ED9),
             child: ListTile(
               leading: const Icon(Icons.telegram, color: Colors.white, size: 30),
-              title: Text(T.lang == 'en' ? 'Our Telegram channel' : 'کانال تلگرام ما', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-              subtitle: Text(T.lang == 'en' ? 'Join to hear about new songs' : 'عضو شو و از آهنگای جدید باخبر شو', style: const TextStyle(color: Colors.white70, fontSize: 12)),
+              title: Text(T.telegramChannel, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              subtitle: Text(T.joinTelegram, style: const TextStyle(color: Colors.white70, fontSize: 12)),
               trailing: const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 16),
               onTap: _openTelegram,
             ),
@@ -149,7 +149,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(T.lang == 'en' ? 'Display name' : 'نام نمایشی', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                Text(T.displayName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                 const SizedBox(height: 8),
                 Row(
                   children: [
@@ -157,7 +157,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       child: TextFormField(
                         controller: _nameCtl,
                         decoration: InputDecoration(
-                          hintText: T.lang == 'en' ? 'Name and family' : 'نام و نام خانوادگی',
+                          hintText: T.nameFamily,
                           prefixIcon: const Icon(Icons.person_outline),
                         ),
                       ),
@@ -180,7 +180,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           // --- Change password ---
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Text(T.lang == 'en' ? 'Change password' : 'تغییر رمز عبور', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+            child: Text(T.changePassTitle, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
           ),
           const SizedBox(height: 8),
           Padding(
@@ -191,7 +191,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   controller: _newPassCtl,
                   obscureText: true,
                   decoration: InputDecoration(
-                    hintText: T.lang == 'en' ? 'New password (min 6 chars)' : 'رمز عبور جدید (حداقل ۶ کاراکتر)',
+                    hintText: T.newPassHint,
                     prefixIcon: const Icon(Icons.lock_outline),
                   ),
                 ),
@@ -227,7 +227,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           // --- Appearance & language ---
           SwitchListTile(
             secondary: const Icon(Icons.dark_mode),
-            title: Text(T.lang == 'en' ? 'Dark theme' : 'تم تیره'),
+            title: Text(T.darkTheme),
             value: themeMode == ThemeMode.dark,
             onChanged: (_) => ref.read(themeProvider.notifier).toggle(),
           ),
@@ -246,7 +246,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           ),
           ListTile(
             leading: const Icon(Icons.info_outline),
-            title: Text(T.lang == 'en' ? 'About Iranian Sedà' : 'درباره Iranian Sedà'),
+            title: Text(T.about),
             subtitle: const Text('Version 1.1.0'),
             onTap: () {},
           ),
@@ -254,7 +254,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           const Divider(height: 28),
           ListTile(
             leading: const Icon(Icons.logout, color: Colors.redAccent),
-            title: Text(T.lang == 'en' ? 'Sign out' : 'خروج از حساب', style: const TextStyle(color: Colors.redAccent)),
+            title: Text(T.signOut, style: const TextStyle(color: Colors.redAccent)),
             onTap: () => ref.read(authControllerProvider).signOut(),
           ),
           const SizedBox(height: 20),

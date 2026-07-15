@@ -115,6 +115,35 @@ jobs:
           set -e
           python3 .github/workflows/merge_manifest.py
 
+      # Add deep-link intent-filter (iranseda://playlist/<id>) so shared links
+      # from Telegram open straight into the app.
+      - name: Add deep link intent filter
+        run: |
+          set -e
+          python3 - <<'PYEOF'
+          import re, os
+          mf = "android/app/src/main/AndroidManifest.xml"
+          s = open(mf, encoding="utf-8").read()
+          if "iranseda" not in s:
+              filter_xml = '''
+            <intent-filter>
+              <action android:name="android.intent.action.VIEW" />
+              <category android:name="android.intent.category.DEFAULT" />
+              <category android:name="android.intent.category.BROWSABLE" />
+              <data android:scheme="iranseda" android:host="playlist" />
+            </intent-filter>'''
+              m = re.search(r'(<activity\b[^>]*>.*?</activity>)', s, re.DOTALL)
+              if m:
+                  act = m.group(1)
+                  if "android.intent.action.MAIN" in act:
+                      new_act = act.replace("</activity>", filter_xml + "\n    </activity>", 1)
+                      s = s.replace(act, new_act, 1)
+              open(mf, "w", encoding="utf-8").write(s)
+              print("deep link intent-filter added")
+          else:
+              print("deep link already present")
+          PYEOF
+
       # Set SDK versions (signing disabled for now — unsigned APK is fine for
       # sideload/testing; re-enable once a valid keystore secret is provided).
       # sign_apk.py sets compileSdk=36 on the app module AND injects a correct
@@ -159,9 +188,9 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: latest
-          name: Iranian Spotify - Latest APK
+          name: Iranian Sedà - Latest APK
           body: |
-            آخرین نسخه‌ی اپلیکیشن Iranian Spotify
+            آخرین نسخه‌ی اپلیکیشن Iranian Sedà
             فایل app-release.apk رو دانلود و نصب کن.
           files: build/app/outputs/flutter-apk/app-release.apk
           fail_on_unmatched_files: true

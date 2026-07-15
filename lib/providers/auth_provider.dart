@@ -35,6 +35,15 @@ class AuthController {
     await _auth.auth.signInWithPassword(email: email, password: password);
   }
 
+  /// Google sign-in via Supabase OAuth. Requires Google provider to be
+  /// enabled in the Supabase dashboard (Auth > Providers > Google).
+  Future<void> signInWithGoogle() async {
+    await _auth.auth.signInWithOAuth(
+      OAuthProvider.google,
+      redirectTo: '${AppConstants.supabaseUrl}/auth/v1/callback',
+    );
+  }
+
   /// Guest sign-in: stores a sessionless guest flag so the app can be used
   /// without an account. We still create an anonymous-like local state via
   /// SharedPreferences (handled in AuthController caller). Here we just mark

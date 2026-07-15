@@ -1,8 +1,11 @@
+import 'dart:convert';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/playlist.dart';
+import '../models/song.dart';
 import '../providers/core_providers.dart';
 import '../providers/playlist_provider.dart';
 import '../providers/songs_provider.dart';
@@ -10,6 +13,16 @@ import '../providers/player_provider.dart';
 import '../widgets/song_tile.dart';
 import 'player_screen.dart';
 import 'local_songs_screen.dart';
+
+/// A device song kept locally (path-based, not in the cloud DB).
+class LocalSong {
+  final String path;
+  final String name;
+  LocalSong({required this.path, required this.name});
+  Map<String, dynamic> toJson() => {'path': path, 'name': name};
+  factory LocalSong.fromJson(Map<String, dynamic> j) =>
+      LocalSong(path: j['path'], name: j['name']);
+}
 
 class PlaylistDetailScreen extends ConsumerStatefulWidget {
   final Playlist playlist;
@@ -20,8 +33,27 @@ class PlaylistDetailScreen extends ConsumerStatefulWidget {
 }
 
 class _PlaylistDetailScreenState extends ConsumerState<PlaylistDetailScreen> {
-  // Local (device) songs added to this playlist session
-  final List<PlatformFile> _local = [];
+  // Local (device) songs persisted to shared_preferences keyed by playlist id.
+  List<LocalSong> _local = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadLocal();
+  }
+
+  Future<void> _loadLocal() async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString('local_songs_${widget.playlist.id}') ?? '[]';
+    final list = (jsonDecode(raw) as List).map((e) => LocalSong.fromJson(e)).toList();
+    if (mounted) setState(() => _local = list);
+  }
+
+  Future<void> _saveLocal() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(
+        'local_songs_${widget.playlist.id}', jsonEncode(_local.map((e) => e.toJson()).toList()));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +70,7 @@ class _PlaylistDetailScreenState extends ConsumerState<PlaylistDetailScreen> {
                   child: FilledButton.icon(
                     onPressed: () => _addFromApp(context, ref),
                     icon: const Icon(Icons.music_note),
-                    label: const Text('از برنامه'),
+                    label: Text(T.addFromApp),
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -46,14 +78,14 @@ class _PlaylistDetailScreenState extends ConsumerState<PlaylistDetailScreen> {
                   child: OutlinedButton.icon(
                     onPressed: () => _addFromDevice(context, ref),
                     icon: const Icon(Icons.folder_open),
-                    label: const Text('از گوشی'),
+                    label: Text(T.addFromDevice),
                   ),
                 ),
                 const SizedBox(width: 10),
                 IconButton(
                   onPressed: () => _sharePlaylist(context),
                   icon: const Icon(Icons.share),
-                  tooltip: 'اشتراک‌گذاری',
+                  tooltip: T.lang == 'en' ? 'Share' : 'اشتراک‌گذاری',
                 ),
               ],
             ),
@@ -63,8 +95,8 @@ class _PlaylistDetailScreenState extends ConsumerState<PlaylistDetailScreen> {
               data: (list) {
                 final hasItems = list.isNotEmpty || _local.isNotEmpty;
                 if (!hasItems) {
-                  return const Center(
-                    child: Text('آهنگی ندارد، از بالا اضافه کن'),
+                  return Center(
+                    child: Text(T.noPlaylist),
                   );
                 }
                 return ListView(
@@ -77,18 +109,19 @@ class _PlaylistDetailScreenState extends ConsumerState<PlaylistDetailScreen> {
                           },
                         )),
                     ..._local.asMap().entries.map((e) {
-                      final f = e.value;
-                      final name = f.name.replaceAll(RegExp(r'\.[^.]+$'), '');
+                      final s = e.value;
                       return ListTile(
                         leading: const CircleAvatar(child: Icon(Icons.audio_file)),
-                        title: Text(name, maxLines: 1, overflow: TextOverflow.ellipsis),
-                        subtitle: const Text('آهنگ گوشی'),
+                        title: Text(s.name, maxLines: 1, overflow: TextOverflow.ellipsis),
+                        subtitle: Text(T.deviceSong),
                         trailing: const Icon(Icons.play_arrow),
                         onTap: () {
-                          ref.read(audioHandlerProvider).playLocalFile(f.path!, title: name);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('در حال پخش: $name')),
-                          );
+                          ref.read(audioHandlerProvider).playLocalFile(s.path, title: s.name);
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(T.lang == 'en' ? 'Playing: ${s.name}' : 'در حال پخش: ${s.name}')),
+                            );
+                          }
                         },
                       );
                     }),
@@ -130,23 +163,28 @@ class _PlaylistDetailScreenState extends ConsumerState<PlaylistDetailScreen> {
       withData: false,
     );
     if (res != null && res.files.isNotEmpty) {
-      setState(() => _local.addAll(res.files.where((f) => f.path != null)));
+      final picked = res.files.where((f) => f.path != null).map((f) {
+        final name = f.name.replaceAll(RegExp(r'\.[^.]+$'), '');
+        return LocalSong(path: f.path!, name: name);
+      }).toList();
+      setState(() => _local.addAll(picked));
+      await _saveLocal();
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${res.files.length} آهنگ از گوشی اضافه شد')),
+          SnackBar(content: Text(T.lang == 'en'
+              ? '${picked.length} device songs added'
+              : '${picked.length} آهنگ از گوشی اضافه شد')),
         );
       }
     }
   }
 
   void _sharePlaylist(BuildContext context) {
-    final link = 'https://thetextstory.com/playlist/${widget.playlist.id}';
-    // Share via the OS sheet so the deep link works when tapped from Telegram.
+    // Deep link opens the app straight into this playlist via uni_links.
+    final link = 'iranseda://playlist/${widget.playlist.id}';
     Share.share(
-      'پلی‌لیست «${widget.playlist.name}»:\n$link',
+      '${T.lang == 'en' ? 'Playlist' : 'پلی‌لیست'} «${widget.playlist.name}»:\n$link',
       subject: widget.playlist.name,
     );
   }
 }
-
-

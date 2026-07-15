@@ -69,8 +69,8 @@ Future<void> _checkForUpdate() async {
   }
 }
 
-/// Parses a playlist deep link (https://thetextstory.com/playlist/<id>) and
-/// navigates into the app directly to that playlist.
+/// Parses a playlist deep link (https://thetextstory.com/playlist/<id> or
+/// iranseda://playlist/<id>) and navigates into the app directly to that playlist.
 void _initUniLinks() {
   try {
     getInitialLink().then(_handleLink);
@@ -81,24 +81,29 @@ void _initUniLinks() {
 }
 
 void _handleLink(String? link) {
-  if (link == null) return;
-  final uri = Uri.tryParse(link);
-  if (uri == null) return;
-  if (uri.host == 'thetextstory.com' && uri.pathSegments.isNotEmpty) {
-    // path like /playlist/<id>
-    if (uri.pathSegments.length >= 2 && uri.pathSegments[0] == 'playlist') {
-      final id = uri.pathSegments[1];
-      // We can't navigate here without a context; the SplashScreen/MainShell
-      // will pick this up via a global navigator key if needed. For now,
-      // store for the detail screen to read.
-      _pendingPlaylistId = id;
-      debugPrint('deep link playlist id: $id');
-    }
+  if (link == null || link.isEmpty) return;
+  String? id;
+  if (link.startsWith('iranseda://playlist/')) {
+    id = link.replaceFirst('iranseda://playlist/', '');
+  } else if (link.contains('/playlist/')) {
+    id = link.split('/playlist/').last;
+  }
+  if (id != null && id.isNotEmpty) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final ctx = navigatorKey.currentContext;
+      if (ctx != null) {
+        Navigator.of(ctx).push(
+          MaterialPageRoute(
+            builder: (_) => PlaylistDetailScreen(playlist: Playlist(id: id!, name: T.lang == 'en' ? 'Playlist' : 'پلی‌لیست')),
+          ),
+        );
+      }
+    });
   }
 }
 
 /// Shared across the app so PlaylistDetailScreen can be opened from a link.
-String? _pendingPlaylistId;
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 class HarmonyApp extends ConsumerStatefulWidget {
   final bool supabaseReady;
@@ -128,6 +133,7 @@ class _HarmonyAppState extends ConsumerState<HarmonyApp> with WidgetsBindingObse
     T.setLocale(locale.languageCode);
 
     return MaterialApp(
+      navigatorKey: navigatorKey,
       title: 'Iranian Sedà',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),

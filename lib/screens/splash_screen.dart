@@ -43,7 +43,7 @@ class _Loading extends StatelessWidget {
           children: [
             Icon(Icons.graphic_eq, size: 72, color: AppColors.primary),
             SizedBox(height: 16),
-            Text('Iranian Spotify', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+            Text('Iranian Sedà', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
             SizedBox(height: 24),
             CircularProgressIndicator(color: AppColors.primary),
           ],

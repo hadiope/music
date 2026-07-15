@@ -13,56 +13,60 @@ class MiniPlayer extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final handler = ref.watch(audioHandlerProvider);
 
-    return StreamBuilder<PlayerState>(
-      stream: handler.playerStateStream,
-      builder: (context, snapshot) {
+    return ValueListenableBuilder<int>(
+      valueListenable: handler.indexNotifier,
+      builder: (context, idx, _) {
         final song = handler.currentSong;
         if (song == null) return const SizedBox.shrink();
-        final playing = snapshot.data?.playing ?? false;
-
-        return GestureDetector(
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const PlayerScreen()),
-          ),
-          child: Container(
-            height: 62,
-            margin: const EdgeInsets.symmetric(horizontal: 8),
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            decoration: BoxDecoration(
-              color: Theme.of(context).cardColor,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Row(
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(6),
-                  child: NetImage(song.coverUrl, width: 46, height: 46, radius: 6),
+        return StreamBuilder<PlayerState>(
+          stream: handler.playerStateStream,
+          builder: (context, snapshot) {
+            final playing = snapshot.data?.playing ?? false;
+            return GestureDetector(
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const PlayerScreen()),
+              ),
+              child: Container(
+                height: 62,
+                margin: const EdgeInsets.symmetric(horizontal: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).cardColor,
+                  borderRadius: BorderRadius.circular(10),
                 ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(song.title, maxLines: 1, overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontWeight: FontWeight.w600)),
-                      Text(song.artist, maxLines: 1, overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontSize: 12, color: Colors.grey)),
-                    ],
-                  ),
+                child: Row(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(6),
+                      child: NetImage(song.coverUrl, width: 46, height: 46, radius: 6),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(song.title, maxLines: 1, overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(fontWeight: FontWeight.w600)),
+                          Text(song.artist, maxLines: 1, overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      icon: Icon(playing ? Icons.pause : Icons.play_arrow),
+                      onPressed: () => playing ? handler.pause() : handler.play(),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.skip_next),
+                      onPressed: () => handler.next(),
+                    ),
+                  ],
                 ),
-                IconButton(
-                  icon: Icon(playing ? Icons.pause : Icons.play_arrow),
-                  onPressed: () => playing ? handler.pause() : handler.play(),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.skip_next),
-                  onPressed: () => handler.next(),
-                ),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         );
       },
     );

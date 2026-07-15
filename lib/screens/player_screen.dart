@@ -28,14 +28,14 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(icon: const Icon(Icons.keyboard_arrow_down), onPressed: () => Navigator.pop(context)),
-        title: const Text('در حال پخش'),
+        title: Text(T.nowPlayingTitle),
       ),
       body: StreamBuilder<int>(
         stream: handler.currentIndexStream,
         builder: (context, idxSnap) {
           final song = handler.currentSong;
           if (song == null) {
-            return const Center(child: Text('آهنگی پخش نمی‌شود'));
+            return Center(child: Text(T.noSongPlaying));
           }
           return StreamBuilder<PlayerState>(
             stream: handler.playerStateStream,
@@ -99,7 +99,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
                                         child: Text(
                                           (song.lyrics != null && song.lyrics!.isNotEmpty)
                                               ? song.lyrics!
-                                              : 'متن آهنگی برای این آهنگ ثبت نشده است.',
+                                              : T.noLyrics,
                                           style: const TextStyle(fontSize: 16, height: 1.6),
                                         ),
                                       ),
@@ -157,14 +157,16 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
-                        IconButton(
-                          iconSize: 28,
-                          icon: Icon(handler.loopMode == LoopMode.one ? Icons.repeat_one : Icons.repeat,
-                              color: handler.loopMode != LoopMode.off ? const Color(0xFF1DB954) : null),
-                          onPressed: () async {
-                            await handler.cycleRepeat();
-                            setState(() {}); // force immediate UI update
-                          },
+                        ValueListenableBuilder<LoopMode>(
+                          valueListenable: handler.loopNotifier,
+                          builder: (_, loop, __) => IconButton(
+                            iconSize: 28,
+                            icon: Icon(loop == LoopMode.one ? Icons.repeat_one : Icons.repeat,
+                                color: loop != LoopMode.off ? const Color(0xFF1DB954) : null),
+                            onPressed: () async {
+                              await handler.cycleRepeat();
+                            },
+                          ),
                         ),
                         IconButton(iconSize: 40, icon: const Icon(Icons.skip_previous), onPressed: () => handler.previous()),
                         Container(
@@ -176,14 +178,16 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
                           ),
                         ),
                         IconButton(iconSize: 40, icon: const Icon(Icons.skip_next), onPressed: () => handler.next()),
-                        IconButton(
-                          iconSize: 28,
-                          icon: Icon(Icons.shuffle,
-                              color: handler.player.shuffleModeEnabled ? const Color(0xFF1DB954) : null),
-                          onPressed: () async {
-                            await handler.setShuffle(!handler.player.shuffleModeEnabled);
-                            setState(() {}); // force immediate UI update
-                          },
+                        ValueListenableBuilder<bool>(
+                          valueListenable: handler.shuffleNotifier,
+                          builder: (_, shuf, __) => IconButton(
+                            iconSize: 28,
+                            icon: Icon(Icons.shuffle,
+                                color: shuf ? const Color(0xFF1DB954) : null),
+                            onPressed: () async {
+                              await handler.setShuffle(!shuf);
+                            },
+                          ),
                         ),
                       ],
                     ),

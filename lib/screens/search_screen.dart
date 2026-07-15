@@ -80,7 +80,7 @@ class SearchScreen extends ConsumerWidget {
                 if (query.isEmpty)
                   return Center(
                     child: Text(
-                      T.lang == 'en' ? 'Pick a category or search' : 'یک دسته‌بندی انتخاب کن یا جستجو کن',
+                      T.lang == 'en' ? 'Pick a category or search' : T.pickCategoryOrSearch,
                       style: const TextStyle(color: Colors.grey),
                     ),
                   );

@@ -45,40 +45,71 @@ class LibraryScreen extends ConsumerWidget {
             ),
           ],
         ),
-        body: TabBarView(
+        body: Column(
           children: [
-            _songList(context, ref, liked),
-            playlists.when(
-              data: (list) => list.isEmpty
-                  ? Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(T.lang == 'en' ? 'You have no playlists' : 'پلی‌لیستی نداری'),
-                          TextButton.icon(
-                            onPressed: () => _createPlaylistDialog(context, ref),
-                            icon: const Icon(Icons.add),
-                            label: Text(T.lang == 'en' ? 'Create your first playlist' : 'بساز اولین ${T.playlists}'),
-                          ),
-                        ],
-                      ),
-                    )
-                  : ListView.builder(
-                      itemCount: list.length,
-                      itemBuilder: (_, i) => ListTile(
-                        leading: const CircleAvatar(child: Icon(Icons.queue_music)),
-                        title: Text(list[i].name),
-                        trailing: const Icon(Icons.chevron_left),
-                        onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => PlaylistDetailScreen(playlist: list[i])),
-                        ),
-                      ),
+            // Genre chips (same categories shown in search)
+            SizedBox(
+              height: 44,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                separatorBuilder: (_, __) => const SizedBox(width: 8),
+                itemCount: genresList.length,
+                itemBuilder: (_, i) {
+                  final g = genresList[i];
+                  return GestureDetector(
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => GenreScreen(genre: g.name)),
                     ),
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, __) => Center(child: Text('خطا: $e')),
+                    child: Chip(
+                      label: Text(g.name),
+                      backgroundColor: AppColors.primary.withOpacity(0.15),
+                      labelStyle: const TextStyle(color: AppColors.primary),
+                    ),
+                  );
+                },
+              ),
             ),
-            _songList(context, ref, history),
+            const Divider(height: 1),
+            Expanded(
+              child: TabBarView(
+                children: [
+                  _songList(context, ref, liked),
+                  playlists.when(
+                    data: (list) => list.isEmpty
+                        ? Center(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(T.noPlaylists),
+                                TextButton.icon(
+                                  onPressed: () => _createPlaylistDialog(context, ref),
+                                  icon: const Icon(Icons.add),
+                                  label: Text(T.createFirstPlaylist),
+                                ),
+                              ],
+                            ),
+                          )
+                        : ListView.builder(
+                            itemCount: list.length,
+                            itemBuilder: (_, i) => ListTile(
+                              leading: const CircleAvatar(child: Icon(Icons.queue_music)),
+                              title: Text(list[i].name),
+                              trailing: const Icon(Icons.chevron_left),
+                              onTap: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (_) => PlaylistDetailScreen(playlist: list[i])),
+                              ),
+                            ),
+                          ),
+                    loading: () => const Center(child: CircularProgressIndicator()),
+                    error: (e, __) => Center(child: Text('خطا: $e')),
+                  ),
+                  _songList(context, ref, history),
+                ],
+              ),
+            ),
           ],
         ),
       ),
@@ -110,17 +141,17 @@ class LibraryScreen extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: Text(T.lang == 'en' ? 'New playlist' : 'پلی‌لیست جدید'),
+        title: Text(T.newPlaylist),
         content: TextField(
           controller: ctrl,
           decoration: InputDecoration(
-            hintText: T.lang == 'en' ? 'Playlist name' : 'اسم پلی‌لیست',
+            hintText: T.playlistName,
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(T.lang == 'en' ? 'Cancel' : 'لغو'),
+            child: Text(T.cancel),
           ),
           FilledButton(
             onPressed: () {
@@ -129,7 +160,7 @@ class LibraryScreen extends ConsumerWidget {
               }
               Navigator.pop(context);
             },
-            child: Text(T.lang == 'en' ? 'Create' : 'بساز'),
+            child: Text(T.create),
           ),
         ],
       ),

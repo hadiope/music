@@ -60,6 +60,19 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     }
   }
 
+  Future<void> _google() async {
+    setState(() => _loading = true);
+    try {
+      await ref.read(authControllerProvider).signInWithGoogle();
+      // OAuth opens a browser; the deep-link callback brings the user back
+      // and the splash screen will pick up the session.
+    } catch (e) {
+      setState(() => _error = _cleanError(e.toString()));
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
   String _cleanError(String e) {
     return e
         .replaceAll('AuthException', '')
@@ -210,6 +223,16 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                     ],
                   ),
                   const SizedBox(height: 14),
+                  OutlinedButton.icon(
+                    onPressed: _loading ? null : _google,
+                    icon: const Icon(Icons.g_mobiledata),
+                    label: const Text('ورود با گوگل'),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 13),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
                   OutlinedButton.icon(
                     onPressed: _loading ? null : _guest,
                     icon: const Icon(Icons.person_outline),
