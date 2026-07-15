@@ -24,12 +24,22 @@ class AudioPlayerHandler {
     return _queue[_currentIndex];
   }
 
+  AudioPlayerHandler() {
+    // Keep _currentIndex in sync with the player (covers auto-advance,
+    // shuffle, and manual seeks so the UI always shows the right song).
+    player.currentIndexStream.listen((i) {
+      if (i != null) _currentIndex = i;
+    });
+  }
+
   /// Load a list of songs and start at [startIndex].
   Future<void> setQueue(List<Song> songs, {int startIndex = 0}) async {
-    if (songs.isEmpty) return;
-    _queue = List.from(songs);
-    _currentIndex = startIndex.clamp(0, songs.length - 1);
-    final sources = songs
+    // Only keep songs that actually have a playable URL.
+    final playable = songs.where((s) => s.audioUrl.isNotEmpty).toList();
+    if (playable.isEmpty) return;
+    _queue = playable;
+    _currentIndex = startIndex.clamp(0, playable.length - 1);
+    final sources = playable
         .map((s) => AudioSource.uri(
               Uri.parse(s.audioUrl),
               tag: MediaItem(
@@ -57,11 +67,16 @@ class AudioPlayerHandler {
   /// Play a single local file (file:// or content:// URI picked by the user).
   Future<void> playLocalFile(String path,
       {String title = 'آهنگ محلی', String artist = 'دستگاه'}) async {
+    final uri = (path.startsWith('http') ||
+            path.startsWith('file://') ||
+            path.startsWith('content://'))
+        ? path
+        : 'file://$path';
     final song = Song(
       id: 'local_${path.hashCode}',
       title: title,
       artist: artist,
-      audioUrl: path.startsWith('http') ? path : 'file://$path',
+      audioUrl: uri,
       coverUrl: '',
       genre: '',
       album: '',
@@ -72,7 +87,7 @@ class AudioPlayerHandler {
     try {
       await player.setAudioSource(
         AudioSource.uri(
-          Uri.parse(song.audioUrl),
+          Uri.parse(uri),
           tag: MediaItem(
             id: song.id,
             title: song.title,
@@ -92,12 +107,15 @@ class AudioPlayerHandler {
 
   Future<void> next() async {
     if (_queue.isEmpty) return;
-    if (_shuffle) {
-      _currentIndex = (_currentIndex + 1) % _queue.length;
-    } else {
-      _currentIndex = (_currentIndex + 1) % _queue.length;
+    try {
+      // Respect the player's own shuffle + loop handling.
+      await player.seekToNext();
+    } catch (_) {
+      // Fallback if seekToNext is a no-op (e.g. end of queue, loop off).
+      final i = (_currentIndex + 1) % _queue.length;
+      _currentIndex = i;
+      await _playIndex(i);
     }
-    await _playIndex(_currentIndex);
   }
 
   Future<void> previous() async {
@@ -109,12 +127,13 @@ class AudioPlayerHandler {
       await player.play();
       return;
     }
-    if (_shuffle) {
-      _currentIndex = (_currentIndex - 1 + _queue.length) % _queue.length;
-    } else {
-      _currentIndex = (_currentIndex - 1 + _queue.length) % _queue.length;
+    try {
+      await player.seekToPrevious();
+    } catch (_) {
+      final i = (_currentIndex - 1 + _queue.length) % _queue.length;
+      _currentIndex = i;
+      await _playIndex(i);
     }
-    await _playIndex(_currentIndex);
   }
 
   Future<void> _playIndex(int i) async {

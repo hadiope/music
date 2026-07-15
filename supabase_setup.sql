@@ -69,10 +69,22 @@ create table if not exists public.banners (
 );
 
 -- ---------- increment plays function ----------
+-- SECURITY DEFINER: runs with the owner's privileges so anonymous users
+-- (who only have SELECT on `songs`) can still increment the play counter
+-- via RPC. Without this, plays never increase and "Popular" stays empty.
 create or replace function public.increment_plays(song_id uuid)
-returns void language sql as $$
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
   update public.songs set plays = plays + 1 where id = song_id;
+end;
 $$;
+
+-- Allow anonymous + authenticated users to call the RPC.
+grant execute on function public.increment_plays(uuid) to anon, authenticated;
 
 -- ============================================================
 --  ROW LEVEL SECURITY

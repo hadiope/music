@@ -24,6 +24,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   bool _saving = false;
   String? _msg;
   bool _msgOk = false;
+  bool _nameInitialized = false;
 
   @override
   void dispose() {
@@ -97,7 +98,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final themeMode = ref.watch(themeProvider);
     final locale = ref.watch(localeProvider);
     final name = _fullName();
-    _nameCtl.text = name;
+    // Initialise the field once so user edits are never wiped on rebuild
+    // (e.g. when the theme/locale switches or a save error occurs).
+    if (!_nameInitialized) {
+      _nameCtl.text = name;
+      _nameInitialized = true;
+    }
 
     return Scaffold(
       appBar: AppBar(title: Text(T.lang == 'en' ? 'Profile & Settings' : 'پروفایل و تنظیمات')),

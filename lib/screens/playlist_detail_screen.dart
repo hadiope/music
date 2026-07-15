@@ -141,17 +141,12 @@ class _PlaylistDetailScreenState extends ConsumerState<PlaylistDetailScreen> {
 
   void _sharePlaylist(BuildContext context) {
     final link = 'https://thetextstory.com/playlist/${widget.playlist.id}';
-    final shareUrl = 'https://t.me/share/url?url=${Uri.encodeComponent(link)}&text=${Uri.encodeComponent('به این پلی‌لیست گوش بده: ${widget.playlist.name}')}';
-    // Use plain Share for the deep link so it works when tapped from Telegram
+    // Share via the OS sheet so the deep link works when tapped from Telegram.
     Share.share(
       'پلی‌لیست «${widget.playlist.name}»:\n$link',
       subject: widget.playlist.name,
     );
-    // Also open Telegram share intent
-    // (launched via url_launcher elsewhere if needed)
-    debugPrint('share link: $shareUrl');
   }
 }
 
-// ignore: unused_element
-void _unusedShareIntent(String url) {}
+

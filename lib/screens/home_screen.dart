@@ -13,6 +13,7 @@ import '../widgets/song_tile.dart';
 import 'player_screen.dart';
 import 'genre_screen.dart';
 import '../widgets/local_banner.dart';
+import '../widgets/banner_carousel.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -55,6 +56,13 @@ class HomeScreen extends ConsumerWidget {
               child: Padding(
                 padding: EdgeInsets.only(top: 8),
                 child: LocalBanner(),
+              ),
+            ),
+            // Server-driven promo banners (from `banners` table)
+            const SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.only(top: 12),
+                child: _BannersSlider(),
               ),
             ),
             // Genre cards (Iranian categories)
@@ -159,6 +167,21 @@ class HomeScreen extends ConsumerWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Reads active banners from Supabase and shows them in a carousel.
+class _BannersSlider extends ConsumerWidget {
+  const _BannersSlider();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final banners = ref.watch(bannersProvider);
+    return banners.when(
+      data: (list) => list.isEmpty ? const SizedBox.shrink() : BannerCarousel(banners: list),
+      loading: () => const SizedBox(height: 150, child: Center(child: CircularProgressIndicator())),
+      error: (_, __) => const SizedBox.shrink(),
     );
   }
 }
