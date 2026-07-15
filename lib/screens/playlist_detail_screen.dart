@@ -6,6 +6,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/playlist.dart';
 import '../models/song.dart';
+import '../core/strings.dart';
 import '../providers/core_providers.dart';
 import '../providers/playlist_provider.dart';
 import '../providers/songs_provider.dart';

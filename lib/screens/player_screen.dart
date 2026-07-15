@@ -4,6 +4,7 @@ import '../widgets/net_image.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:share_plus/share_plus.dart';
 import '../core/constants.dart';
+import '../core/strings.dart';
 import '../providers/core_providers.dart';
 import '../providers/likes_provider.dart';
 
