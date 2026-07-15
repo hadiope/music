@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:just_audio_background/just_audio_background.dart';
 import 'package:in_app_update/in_app_update.dart';
-import 'package:uni_links/uni_links.dart';
+import 'package:app_links/app_links.dart';
 import 'core/constants.dart';
 import 'core/theme.dart';
 import 'core/strings.dart';
@@ -71,22 +71,25 @@ Future<void> _checkForUpdate() async {
 
 /// Parses a playlist deep link (https://thetextstory.com/playlist/<id> or
 /// iranseda://playlist/<id>) and navigates into the app directly to that playlist.
+final _appLinks = AppLinks();
+
 void _initUniLinks() {
   try {
-    getInitialLink().then(_handleLink);
-    linkStream.listen(_handleLink);
+    _appLinks.getInitialLink().then(_handleLink);
+    _appLinks.uriLinkStream.listen(_handleLink);
   } catch (e) {
-    debugPrint('uni_links init failed: $e');
+    debugPrint('app_links init failed: $e');
   }
 }
 
-void _handleLink(String? link) {
-  if (link == null || link.isEmpty) return;
+void _handleLink(Uri? link) {
+  if (link == null) return;
   String? id;
-  if (link.startsWith('iranseda://playlist/')) {
-    id = link.replaceFirst('iranseda://playlist/', '');
-  } else if (link.contains('/playlist/')) {
-    id = link.split('/playlist/').last;
+  final s = link.toString();
+  if (s.startsWith('iranseda://playlist/')) {
+    id = s.replaceFirst('iranseda://playlist/', '');
+  } else if (s.contains('/playlist/')) {
+    id = s.split('/playlist/').last;
   }
   if (id != null && id.isNotEmpty) {
     WidgetsBinding.instance.addPostFrameCallback((_) {

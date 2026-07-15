@@ -157,20 +157,6 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
 
-      # Patch uni_links 0.5.1 android/build.gradle: it still references
-      # `jcenter()` which was removed in Gradle 8+. Swap to mavenCentral()
-      # so the project configures. (uni_links is only used for deep links.)
-      - name: Patch uni_links jcenter()
-        run: |
-          set -e
-          F=$(find android -path '*uni_links*/android/build.gradle' 2>/dev/null | head -1)
-          if [ -n "$F" ]; then
-            sed -i 's/jcenter()/mavenCentral()/g' "$F"
-            echo "patched $F"
-          else
-            echo "uni_links build.gradle not found, skipping"
-          fi
-
       - name: Build signed APK (release)
         run: |
           set -e
