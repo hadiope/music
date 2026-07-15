@@ -1,3 +1,4 @@
+import '../core/strings.dart';
 import 'package:flutter/material.dart';
 
 class SectionHeader extends StatelessWidget {

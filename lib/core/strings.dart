@@ -129,6 +129,7 @@ class T {
   static String get shareText => _lang == 'en'
       ? 'Listen to this song: {title} - {artist}\nFrom Iran Seda app 🎧\nOur channel: {channel}'
       : 'به این آهنگ گوش بده: {title} - {artist}\nاز اپ Iran Seda 🎧\nکانال ما: {channel}';
+  static String get lyricsTooltip => _lang == 'en' ? 'Lyrics' : 'متن آهنگ';
   static String get localSongTitleDefault => _lang == 'en' ? 'Local song' : 'آهنگ محلی';
   static String get localSongArtistDefault => _lang == 'en' ? 'Device' : 'دستگاه';
 

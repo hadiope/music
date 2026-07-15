@@ -111,7 +111,9 @@ class AudioPlayerHandler {
 
   /// Play a single local file (file:// or content:// URI picked by the user).
   Future<bool> playLocalFile(String path,
-      {String title = T.localSongTitleDefault, String artist = T.localSongArtistDefault}) async {
+      {String? title, String? artist}) async {
+    title ??= T.localSongTitleDefault;
+    artist ??= T.localSongArtistDefault;
     final uri = (path.startsWith('http') ||
             path.startsWith('file://') ||
             path.startsWith('content://'))

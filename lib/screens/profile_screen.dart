@@ -237,9 +237,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             trailing: DropdownButton<String>(
               value: locale.languageCode,
               underline: const SizedBox.shrink(),
-              items: const [
+              items: [
                 DropdownMenuItem(value: 'fa', child: Text(T.persian)),
-                DropdownMenuItem(value: 'en', child: Text('English')),
+                DropdownMenuItem(value: 'en', child: const Text('English')),
               ],
               onChanged: (v) => ref.read(localeProvider.notifier).set(v ?? 'fa'),
             ),

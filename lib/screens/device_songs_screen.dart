@@ -43,7 +43,6 @@ class _DeviceSongsScreenState extends ConsumerState<DeviceSongsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    ref.watch(tProvider); // sync language
     return Scaffold(
       appBar: AppBar(
         title: Text(T.deviceSongsTitle),
