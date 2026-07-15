@@ -1,6 +1,6 @@
-# 🎧 Iranian Spotify — اپ موزیک استریمینگ (Flutter + Supabase)
+# 🎧 Iran Seda (ایران صدا) — اپ موزیک استریمینگ (Flutter + Supabase)
 
-یه اپلیکیشن موزیک حرفه‌ای شبیه Spotify، ساخته‌شده با **Flutter** و بک‌اند **Supabase**.
+یه اپلیکیشن موزیک حرفه‌ای، ساخته‌شده با **Flutter** و بک‌اند **Supabase**.
 
 ## ✨ امکانات
 - 🔐 احراز هویت: ثبت‌نام/ورود با ایمیل + ورود با گوگل
@@ -45,9 +45,9 @@ flutter pub get
    static const String supabaseAnonKey = 'اینجا anon key خودت';
    static const String telegramChannel = 'https://t.me/کانال_خودت';
    ```
-4. تو Supabase برو `SQL Editor` → محتوای فایل `supabase_setup.sql` رو کپی/پیست کن → **Run**
-   (این جدول‌ها، RLS، تابع increment_plays و چندتا آهنگ نمونه رو می‌سازه)
-5. برو `Storage` → دو تا باکت **public** بساز: `music` و `covers`
+4. تو Supabase برو `SQL Editor` → فایل‌های داخل پوشه `supabase/migrations/` رو به ترتیب (اول `0001_init.sql` بعد `0002_storage_and_songs.sql`) کپی/پیست کن → **Run**
+   (این جدول‌ها، RLS، باکت‌های Storage و چندتا آهنگ نمونه رو می‌سازه)
+5. باکت‌های `music` و `covers` توسط مایگریشن ۲ خودکار ساخته میشن (public) — اگه نساخت دستی برو `Storage` و بسازشون.
 
 ### قدم ۴: تنظیم فایل‌های اندروید (مهم برای پخش پس‌زمینه)
 بعد از `flutter create .`، فایل `android/app/src/main/AndroidManifest.xml` رو باز کن و
@@ -65,12 +65,18 @@ flutter run
 ```
 
 ### قدم ۶: ساخت فایل نصبی APK 🎉
+روش پیشنهادی: **GitHub Actions** (بدون نیاز به کامپایل روی سیستم خودت — مخصوصاً اگه RAM کمی داری):
+1. تغییرات رو `push` کن به برنچ `main`
+2. برو تب **Actions** → workflow «Build APK» رو بزن → صبر کن تموم شه
+3. از بخش **Artifacts** فایل `iranseda-apks` رو دانلود کن (شامل APKهای جداگانه برای هر معماری)
+
+یا به صورت محلی:
 ```bash
-flutter build apk --release
+flutter build apk --release --split-per-abi
 ```
 فایل خروجی اینجاست:
 ```
-build/app/outputs/flutter-apk/app-release.apk
+build/app/outputs/flutter-apk/app-*-release.apk
 ```
 اینو بریز رو گوشی یا بذار تو کانال تلگرامت.
 
@@ -108,3 +114,9 @@ lib/
 ```
 
 موفق باشی داداش 🚀🎧
+
+---
+
+## 🤖 CI/CD
+فایل `.github/workflows/build-apk.yml` روی هر `push` به `main` به‌صورت خودکار اپ رو با Flutter build می‌گیره و APK تحویل میده.
+برای اجرای دستی هم می‌تونی از تب Actions گزینه «Run workflow» رو بزنی.
