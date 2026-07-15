@@ -1,0 +1,138 @@
+name: Diagnose Release Build
+
+on:
+  workflow_dispatch:
+
+jobs:
+  diagnose-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+
+      - name: Generate Android platform files
+        run: flutter create --platforms=android --org ir.iranseda .
+
+      - name: Set package id and app name
+        run: |
+          set -e
+          python3 - <<'PY'
+          import re, os, glob
+          PKG = "ir.iranseda.hadi"
+          LABEL = "iran seda"
+          for p in ["android/app/build.gradle.kts", "android/app/build.gradle"]:
+              if os.path.isfile(p):
+                  s = open(p, encoding="utf-8").read()
+                  s = re.sub(r'applicationId\s*=\s*".*?"', f'applicationId = "{PKG}"', s)
+                  s = re.sub(r'namespace\s*=\s*".*?"', f'namespace = "{PKG}"', s)
+                  open(p, "w", encoding="utf-8").write(s)
+          mf = "android/app/src/main/AndroidManifest.xml"
+          if os.path.isfile(mf):
+              s = open(mf, encoding="utf-8").read()
+              s = re.sub(r'android:label="[^"]*"', f'android:label="{LABEL}"', s, count=1)
+              open(mf, "w", encoding="utf-8").write(s)
+          old = glob.glob("android/app/src/main/kotlin/**/MainActivity.kt", recursive=True)
+          newdir = "android/app/src/main/kotlin/ir/iranseda/hadi"
+          os.makedirs(newdir, exist_ok=True)
+          if old:
+              content = open(old[0], encoding="utf-8").read()
+              content = re.sub(r'package\s+[\w.]+', f'package {PKG}', content)
+              open(os.path.join(newdir, "MainActivity.kt"), "w", encoding="utf-8").write(content)
+              for f in old:
+                  if os.path.abspath(f) != os.path.abspath(os.path.join(newdir, "MainActivity.kt")):
+                      os.remove(f)
+          PY
+
+      - name: Accept SDK licenses and install platform
+        run: |
+          set -e
+          mkdir -p "$ANDROID_HOME/licenses"
+          echo -e "8933bad161af4178b1185d1a37fbf41ea5269c55\n24333f8a63b6825ea9c5514f83c2829b004d1fee" > "$ANDROID_HOME/licenses/android-sdk-license"
+          echo -e "84831b9409646a918e30573bab4c9c91346d8abd\n504667f4c0de7af1a06de9e8bdd43f4fae5d20da\n" > "$ANDROID_HOME/licenses/android-sdk-preview-license"
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platforms;android-36" || true
+
+      - name: Apply custom app icon
+        run: |
+          set -e
+          ICONS=assets/icons
+          if [ -d "$ICONS" ]; then
+            for d in mdpi hdpi xhdpi xxhdpi xxxhdpi; do
+              if [ -d "$ICONS/mipmap-$d" ]; then
+                mkdir -p "android/app/src/main/res/mipmap-$d"
+                cp -f "$ICONS/mipmap-$d/"* "android/app/src/main/res/mipmap-$d/" 2>/dev/null || true
+              fi
+            done
+            rm -f android/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml 2>/dev/null || true
+            rm -f android/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml 2>/dev/null || true
+          fi
+
+      - name: Merge manifest permissions
+        run: python3 .github/workflows/merge_manifest.py
+
+      - name: Set SDK versions
+        run: |
+          python3 - <<'PY'
+          import os, re
+          ROOT = os.getcwd()
+          APP = os.path.join(ROOT, "android", "app")
+          for p in ["build.gradle.kts", "build.gradle"]:
+              PATH = os.path.join(APP, p)
+              if os.path.isfile(PATH):
+                  s = open(PATH, encoding="utf-8").read()
+                  s = re.sub(r"compileSdk\s*=.*", "compileSdk = 36", s)
+                  s = re.sub(r"targetSdk\s*=.*", "targetSdk = 36", s)
+                  s = re.sub(r"minSdk\s*=.*", "minSdk = 24", s)
+                  s = re.sub(r"compileSdkVersion\s+.*", "compileSdkVersion 36", s)
+                  s = re.sub(r"targetSdkVersion\s+.*", "targetSdkVersion 36", s)
+                  s = re.sub(r"minSdkVersion\s+.*", "minSdkVersion 24", s)
+                  open(PATH, "w", encoding="utf-8").write(s)
+          for p in ["build.gradle.kts", "build.gradle"]:
+              PATH = os.path.join(ROOT, "android", p)
+              if os.path.isfile(PATH):
+                  s = open(PATH, encoding="utf-8").read()
+                  s = re.sub(r"\nsubprojects\s*\{.*\}\s*$", "\n", s, flags=re.DOTALL)
+                  block = ("\nsubprojects {\n    afterEvaluate { project ->\n"
+                           "        if (project.hasProperty('android')) {\n"
+                           "            project.android { compileSdkVersion 36 }\n        }\n    }\n}\n")
+                  s = s.rstrip() + block
+                  open(PATH, "w", encoding="utf-8").write(s)
+          PROPS = os.path.join(ROOT, "android", "gradle.properties")
+          if os.path.isfile(PROPS):
+              lines = open(PROPS, encoding="utf-8").readlines()
+              want = {"android.compileSdk": "36", "android.targetSdk": "36", "android.minSdk": "24"}
+              out = []
+              for line in lines:
+                  key = line.split("=", 1)[0].strip()
+                  if key in want:
+                      out.append("%s=%s\n" % (key, want[key])); del want[key]
+                  else:
+                      out.append(line)
+              for k, v in want.items(): out.append("%s=%s\n" % (k, v))
+              open(PROPS, "w", encoding="utf-8").writelines(out)
+          print("DONE_CONFIG")
+          PY
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Build RELEASE APK with full log
+        run: |
+          set -e
+          cd android
+          ./gradlew assembleRelease --no-daemon --stacktrace 2>&1 | tee /tmp/release_build.log || true
+          cd ..
+          echo "=== BUILD LOG (last 200 lines) ===" 
+          tail -n 200 /tmp/release_build.log
+
+      - name: Upload build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-build-log
+          path: /tmp/release_build.log
