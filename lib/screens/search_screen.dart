@@ -4,6 +4,7 @@ import '../core/genres.dart';
 import '../core/strings.dart';
 import '../providers/songs_provider.dart';
 import '../providers/player_provider.dart';
+import '../providers/settings_provider.dart';
 import '../widgets/song_tile.dart';
 import 'player_screen.dart';
 import 'genre_screen.dart';

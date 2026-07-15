@@ -24,8 +24,8 @@ class T {
   static String get addFromDevice => _lang == 'en' ? 'From device' : 'از گوشی';
   static String get localFiles => _lang == 'en' ? 'Local files' : 'فایل‌های گوشی';
   static String get sharePlaylist => _lang == 'en' ? 'Share playlist' : 'اشتراک‌گذاری پلی‌لیست';
-  static String get settings => _lang == 'en' ? 'Settings' : 'تنظیمات';
   static String get language => _lang == 'en' ? 'Language' : 'زبان';
+  static String get settings => _lang == 'en' ? 'Settings' : 'تنظیمات';
 
   // auth / guest
   static String get continueAsGuest => _lang == 'en' ? 'Continue as guest' : 'ورود به عنوان مهمان';
@@ -41,7 +41,6 @@ class T {
   static String get noSongPlaying => _lang == 'en' ? 'Nothing is playing' : 'آهنگی پخش نمی‌شود';
   static String get noPlaylist => _lang == 'en' ? 'No songs yet, add from above' : 'آهنگی ندارد، از بالا اضافه کن';
   static String get addFromApp => _lang == 'en' ? 'From app' : 'از برنامه';
-  static String get addFromDevice => _lang == 'en' ? 'From device' : 'از گوشی';
   static String get pickCategoryOrSearch => _lang == 'en' ? 'Pick a category or search' : 'یک دسته‌بندی انتخاب کن یا جستجو کن';
   static String get deviceSong => _lang == 'en' ? 'Device song' : 'آهنگ گوشی';
   static String get playing => _lang == 'en' ? 'Playing' : 'در حال پخش';

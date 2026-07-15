@@ -30,7 +30,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
         leading: IconButton(icon: const Icon(Icons.keyboard_arrow_down), onPressed: () => Navigator.pop(context)),
         title: Text(T.nowPlayingTitle),
       ),
-      body: StreamBuilder<int>(
+      body: StreamBuilder<int?>(
         stream: handler.currentIndexStream,
         builder: (context, idxSnap) {
           final song = handler.currentSong;

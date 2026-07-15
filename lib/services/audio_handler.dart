@@ -25,7 +25,7 @@ class AudioPlayerHandler {
   Stream<PlayerState> get playerStateStream => player.playerStateStream;
   Stream<Duration> get positionStream => player.positionStream;
   Stream<Duration?> get durationStream => player.durationStream;
-  Stream<int> get currentIndexStream => player.currentIndexStream;
+  Stream<int?> get currentIndexStream => player.currentIndexStream;
 
   Song? get currentSong {
     if (_queue.isEmpty || _currentIndex < 0 || _currentIndex >= _queue.length) return null;
