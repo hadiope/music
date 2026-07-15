@@ -1,0 +1,58 @@
+name: Diagnose Build (debug, no signing)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+
+      - name: Flutter doctor
+        run: flutter doctor -v
+
+      - name: Generate Android platform files
+        run: flutter create --platforms=android --org ir.iranseda .
+
+      - name: Accept SDK licenses and install platform
+        run: |
+          set -e
+          mkdir -p "$ANDROID_HOME/licenses"
+          echo -e "8933bad161af4178b1185d1a37fbf41ea5269c55\n24333f8a63b6825ea9c5514f83c2829b004d1fee" > "$ANDROID_HOME/licenses/android-sdk-license"
+          echo -e "84831b9409646a918e30573bab4c9c91346d8abd\n504667f4c0de7af1a06de9e8bdd43f4fae5d20da\n" > "$ANDROID_HOME/licenses/android-sdk-preview-license"
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platforms;android-36" || true
+
+      - name: Flutter pub get
+        run: flutter pub get
+
+      - name: Flutter analyze (catch Dart errors)
+        run: flutter analyze || true
+
+      - name: Build DEBUG APK (no signing) — full log
+        run: |
+          set -e
+          cd android
+          ./gradlew assembleDebug --no-daemon --stacktrace 2>&1 | tee /tmp/gradle.log || true
+          cd ..
+          echo "=== GRADLE LOG TAIL ==="
+          tail -n 80 /tmp/gradle.log || true
+
+      - name: Upload gradle log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gradle-diagnose-log
+          path: /tmp/gradle.log
