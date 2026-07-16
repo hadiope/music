@@ -1,10 +1,9 @@
 name: Build APK
 
+# Disabled auto-run: this workflow produces a DEBUG-signed APK which triggers
+# the "unknown source / untrusted" install warning. The real signed build is
+# in build.yml (Build Android APK). Kept only for manual debugging.
 on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
   workflow_dispatch:
 
 jobs:
