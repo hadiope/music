@@ -46,58 +46,49 @@ class HomeScreen extends ConsumerWidget {
         },
         child: CustomScrollView(
           slivers: [
-            // Modern gradient header
+            // Spotify-style plain header: white text on black, no gradient
             SliverAppBar(
-              expandedHeight: 120,
+              expandedHeight: 96,
               floating: true,
               pinned: false,
+              backgroundColor: AppColors.darkBg,
               flexibleSpace: FlexibleSpaceBar(
-                background: Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topRight,
-                      end: Alignment.bottomLeft,
-                      colors: isDark
-                          ? [AppColors.primaryDark.withOpacity(0.9), AppColors.darkBg]
-                          : [AppColors.primary.withOpacity(0.85), AppColors.lightBg],
+                background: SafeArea(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                user.isNotEmpty ? '${greetingMessage()} $user' : greetingMessage(),
+                                style: const TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                T.lang == 'en' ? 'Iran Seda Music' : 'آهنگ‌های ایران‌سدا',
+                                style: const TextStyle(fontSize: 13, color: AppColors.greyText),
+                              ),
+                            ],
+                          ),
+                        ),
+                        CircleAvatar(
+                          radius: 20,
+                          backgroundColor: AppColors.darkElevated,
+                          child: const Icon(Icons.person_outline, color: Colors.white, size: 22),
+                        ),
+                      ],
                     ),
                   ),
-                  child: SafeArea(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-                      child: Row(
-                        children: [
-                          CircleAvatar(
-                            radius: 22,
-                            backgroundColor: Colors.white24,
-                            child: Icon(Icons.music_note, color: Colors.white, size: 26),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  user.isNotEmpty ? '${greetingMessage()} $user' : greetingMessage(),
-                                  style: const TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                Text(
-                                  T.lang == 'en' ? 'Iran Seda Music' : 'آهنگ‌های ایران‌سدا',
-                                  style: const TextStyle(fontSize: 13, color: Colors.white70),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
                   ),
                 ),
               ),

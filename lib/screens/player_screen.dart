@@ -26,23 +26,13 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
   Widget build(BuildContext context) {
     final handler = ref.watch(audioHandlerProvider);
     final likes = ref.watch(likesProvider);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(icon: const Icon(Icons.keyboard_arrow_down), onPressed: () => Navigator.pop(context)),
         title: Text(T.nowPlayingTitle),
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topRight,
-              end: Alignment.bottomLeft,
-              colors: isDark
-                  ? [AppColors.primaryDark.withOpacity(0.7), Colors.transparent]
-                  : [AppColors.primary.withOpacity(0.6), Colors.transparent],
-            ),
-          ),
-        ),
+        backgroundColor: AppColors.darkBg,
+        foregroundColor: Colors.white,
       ),
       body: ValueListenableBuilder<int>(
         valueListenable: handler.indexNotifier,
@@ -88,21 +78,9 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
                         child: Stack(
                           alignment: Alignment.center,
                           children: [
-                            Container(
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(24),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: AppColors.primary.withOpacity(0.35),
-                                    blurRadius: 30,
-                                    offset: const Offset(0, 12),
-                                  ),
-                                ],
-                              ),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(24),
-                                child: NetImage(song.coverUrl, width: 300, height: 300, radius: 0),
-                              ),
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: NetImage(song.coverUrl, width: 320, height: 320, radius: 0),
                             ),
                             if (queueLen > 1)
                               Positioned(

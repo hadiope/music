@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import '../core/theme.dart';
 import '../models/song.dart';
 import 'net_image.dart';
 
-/// A single song row (used in lists).
+/// A single song row (Spotify-style: compact, grey subtitle, no dividers).
 class SongTile extends StatelessWidget {
   final Song song;
   final VoidCallback onTap;
@@ -13,16 +14,27 @@ class SongTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       onTap: onTap,
-      leading: NetImage(song.coverUrl, width: 52, height: 52, radius: 6),
-      title: Text(song.title, maxLines: 1, overflow: TextOverflow.ellipsis,
-          style: const TextStyle(fontWeight: FontWeight.w600)),
-      subtitle: Text(song.artist, maxLines: 1, overflow: TextOverflow.ellipsis),
-      trailing: trailing,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      leading: ClipRRect(
+        borderRadius: BorderRadius.circular(4),
+        child: NetImage(song.coverUrl, width: 50, height: 50, radius: 0),
+      ),
+      title: Text(song.title,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 15)),
+      subtitle: Text(song.artist,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(fontSize: 13, color: AppColors.greyText)),
+      trailing: trailing ??
+          const Icon(Icons.more_vert, color: AppColors.greyText, size: 20),
     );
   }
 }
 
-/// A square album/song card for horizontal sliders & grids.
+/// A square album/song card for horizontal sliders & grids (Spotify style:
+/// image-forward, no shadow/border, tight rounded corners).
 class SongCard extends StatelessWidget {
   final Song song;
   final VoidCallback onTap;
@@ -31,7 +43,6 @@ class SongCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return GestureDetector(
       onTap: onTap,
       child: SizedBox(
@@ -39,27 +50,20 @@ class SongCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(14),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(isDark ? 0.4 : 0.18),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(14),
-                child: NetImage(song.coverUrl, width: size, height: size, radius: 0),
-              ),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(6),
+              child: NetImage(song.coverUrl, width: size, height: size, radius: 0),
             ),
-            const SizedBox(height: 7),
-            Text(song.title, maxLines: 1, overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
-            Text(song.artist, maxLines: 1, overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 11, color: Colors.grey)),
+            const SizedBox(height: 8),
+            Text(song.title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+            const SizedBox(height: 2),
+            Text(song.artist,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontSize: 12, color: AppColors.greyText)),
           ],
         ),
       ),

@@ -39,14 +39,7 @@ class _MainShellState extends ConsumerState<MainShell> {
           const MiniPlayer(),
           Container(
             decoration: BoxDecoration(
-              color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(isDark ? 0.4 : 0.08),
-                  blurRadius: 16,
-                  offset: const Offset(0, -4),
-                ),
-              ],
+              color: AppColors.darkSurface,
             ),
             child: SafeArea(
               child: Padding(
@@ -55,23 +48,17 @@ class _MainShellState extends ConsumerState<MainShell> {
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: List.generate(_icons.length, (i) {
                     final active = _index == i;
+                    final inactiveColor = isDark ? Colors.grey.shade500 : Colors.grey.shade600;
                     return GestureDetector(
                       onTap: () => setState(() => _index = i),
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 250),
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20),
-                          gradient: active ? AppTheme.brandGradient : null,
-                        ),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(
                               active ? _icons[i][1] : _icons[i][0],
-                              color: active
-                                  ? Colors.white
-                                  : (isDark ? Colors.grey.shade400 : Colors.grey.shade600),
+                              color: active ? AppColors.primary : inactiveColor,
                             ),
                             const SizedBox(height: 3),
                             Text(
@@ -79,9 +66,7 @@ class _MainShellState extends ConsumerState<MainShell> {
                               style: TextStyle(
                                 fontSize: 11,
                                 fontWeight: active ? FontWeight.bold : FontWeight.normal,
-                                color: active
-                                    ? Colors.white
-                                    : (isDark ? Colors.grey.shade400 : Colors.grey.shade600),
+                                color: active ? AppColors.primary : inactiveColor,
                               ),
                             ),
                           ],
