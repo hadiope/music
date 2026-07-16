@@ -8,6 +8,7 @@ import 'home_screen.dart';
 import 'search_screen.dart';
 import 'library_screen.dart';
 import 'profile_screen.dart';
+import 'device_library_screen.dart';
 
 class MainShell extends ConsumerStatefulWidget {
   const MainShell({super.key});
@@ -17,15 +18,15 @@ class MainShell extends ConsumerStatefulWidget {
 
 class _MainShellState extends ConsumerState<MainShell> {
   int _index = 0;
-  final _pages = const [HomeScreen(), SearchScreen(), LibraryScreen(), ProfileScreen()];
+  final _pages = const [HomeScreen(), SearchScreen(), LibraryScreen(), DeviceLibraryScreen()];
 
   final _icons = const [
     [Icons.home_outlined, Icons.home],
     [Icons.search_outlined, Icons.search],
     [Icons.library_music_outlined, Icons.library_music],
-    [Icons.person_outline, Icons.person],
+    [Icons.folder_music_outlined, Icons.folder_music],
   ];
-  final _labels = [T.home, T.search, T.library, T.profile];
+  final _labels = [T.home, T.search, T.library, T.myMusic];
 
   @override
   Widget build(BuildContext context) {

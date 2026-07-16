@@ -70,9 +70,9 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
                         onHorizontalDragEnd: (details) {
                           if (details.primaryVelocity == null) return;
                           if (details.primaryVelocity! < 0) {
-                            handler.next();
-                          } else if (details.primaryVelocity! > 0) {
                             handler.previous();
+                          } else if (details.primaryVelocity! > 0) {
+                            handler.next();
                           }
                         },
                         child: Stack(
@@ -109,7 +109,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(song.title, maxLines: 1, overflow: TextOverflow.ellipsis,
+                              Text(song.title, 
                                   style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
                               Text(song.artist, style: const TextStyle(fontSize: 15, color: Colors.grey)),
                             ],
@@ -134,26 +134,47 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
                           tooltip: T.lyricsTooltip,
                           onPressed: () => showModalBottomSheet(
                             context: context,
+                            isScrollControlled: true,
+                            backgroundColor: Colors.transparent,
                             builder: (_) => DraggableScrollableSheet(
-                              initialChildSize: 0.6,
-                              maxChildSize: 0.9,
+                              initialChildSize: 0.75,
+                              maxChildSize: 0.95,
+                              minChildSize: 0.5,
                               builder: (_, ctrl) => Container(
-                                padding: const EdgeInsets.all(20),
+                                decoration: BoxDecoration(
+                                  color: AppColors.darkSurface,
+                                  borderRadius: const BorderRadius.only(
+                                    topLeft: Radius.circular(24),
+                                    topRight: Radius.circular(24),
+                                  ),
+                                ),
                                 child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(song.title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                                    const SizedBox(height: 4),
-                                    Text(song.artist, style: const TextStyle(color: Colors.grey)),
+                                    const SizedBox(height: 10),
+                                    Container(
+                                      width: 40, height: 4,
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey.shade600,
+                                        borderRadius: BorderRadius.circular(2),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 14),
+                                    Text(song.title,
+                                        textAlign: TextAlign.center,
+                                        style: const TextStyle(fontSize: 19, fontWeight: FontWeight.bold, color: Colors.white)),
+                                    Text(song.artist,
+                                        style: const TextStyle(color: AppColors.greyText, fontSize: 14)),
                                     const Divider(height: 20),
                                     Expanded(
                                       child: SingleChildScrollView(
                                         controller: ctrl,
+                                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
                                         child: Text(
                                           (song.lyrics != null && song.lyrics!.isNotEmpty)
                                               ? song.lyrics!
                                               : T.noLyrics,
-                                          style: const TextStyle(fontSize: 16, height: 1.6),
+                                          textAlign: TextAlign.center,
+                                          style: const TextStyle(fontSize: 17, height: 1.9, fontStyle: FontStyle.italic),
                                         ),
                                       ),
                                     ),

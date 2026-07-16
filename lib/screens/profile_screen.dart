@@ -10,6 +10,7 @@ import '../providers/core_providers.dart';
 import '../providers/settings_provider.dart';
 import 'playlist_detail_screen.dart';
 import 'local_songs_screen.dart';
+import 'auth_screen.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -39,6 +40,18 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     if (u == null) return T.lang == 'en' ? 'Guest' : 'مهمان';
     if (u.email != null) return u.email!;
     return T.lang == 'en' ? 'User' : 'کاربر';
+  }
+
+  bool _isGuest() {
+    final u = Supabase.instance.client.auth.currentUser;
+    return u == null;
+  }
+
+  void _goSignIn(BuildContext ctx) {
+    Navigator.push(
+      ctx,
+      MaterialPageRoute(builder: (_) => const AuthScreen()),
+    );
   }
 
   String _fullName() {
@@ -155,86 +168,123 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
           const Divider(height: 28),
 
-          // --- Edit name ---
+          // --- Guest vs signed-in actions ---
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(T.displayName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextFormField(
-                        controller: _nameCtl,
-                        decoration: InputDecoration(
-                          hintText: T.nameFamily,
-                          prefixIcon: const Icon(Icons.person_outline),
-                        ),
+            child: _isGuest()
+                ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      FilledButton.icon(
+                        onPressed: () => _goSignIn(context),
+                        icon: const Icon(Icons.login),
+                        label: Text(T.signInToAccount),
                       ),
-                    ),
-                    const SizedBox(width: 10),
-                    _saving
-                        ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))
-                        : IconButton.filled(
-                            onPressed: _saveName,
-                            icon: const Icon(Icons.check),
-                          ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 18),
-
-          // --- Change password ---
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Text(T.changePassTitle, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-          ),
-          const SizedBox(height: 8),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Column(
-              children: [
-                TextFormField(
-                  controller: _newPassCtl,
-                  obscureText: true,
-                  decoration: InputDecoration(
-                    hintText: T.newPassHint,
-                    prefixIcon: const Icon(Icons.lock_outline),
+                      const SizedBox(height: 10),
+                      OutlinedButton.icon(
+                        onPressed: () => ref.read(authControllerProvider).signInWithGoogle().catchError((e) {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(T.errGeneric.replaceAll('{e}', e.toString()))),
+                            );
+                          }
+                        }),
+                        icon: const Icon(Icons.g_mobiledata, size: 22),
+                        label: Text(T.googleSignIn),
+                      ),
+                    ],
+                  )
+                : ListTile(
+                    leading: const Icon(Icons.logout, color: Colors.redAccent),
+                    title: Text(T.signOut, style: const TextStyle(color: Colors.redAccent)),
+                    onTap: () => ref.read(authControllerProvider).signOut(),
                   ),
-                ),
-                const SizedBox(height: 10),
-                SizedBox(
-                  width: double.infinity,
-                  child: FilledButton.tonal(
-                    onPressed: _saving ? null : _changePassword,
-                    child: Text(T.changePassBtn),
-                  ),
-                ),
-              ],
-            ),
           ),
-
-          if (_msg != null) ...[
-            const SizedBox(height: 12),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: _msgOk ? AppColors.primary.withOpacity(0.12) : Colors.redAccent.withOpacity(0.12),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Text(_msg!, style: TextStyle(color: _msgOk ? AppColors.primary : Colors.redAccent, fontSize: 13)),
-              ),
-            ),
-          ],
 
           const Divider(height: 28),
+
+          if (!_isGuest()) ...[
+            // --- Edit name ---
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(T.displayName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          controller: _nameCtl,
+                          decoration: InputDecoration(
+                            hintText: T.nameFamily,
+                            prefixIcon: const Icon(Icons.person_outline),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      _saving
+                          ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))
+                          : IconButton.filled(
+                              onPressed: _saveName,
+                              icon: const Icon(Icons.check),
+                            ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 18),
+
+            // --- Change password ---
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Text(T.changePassTitle, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+            ),
+            const SizedBox(height: 8),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Column(
+                children: [
+                  TextFormField(
+                    controller: _newPassCtl,
+                    obscureText: true,
+                    decoration: InputDecoration(
+                      hintText: T.newPassHint,
+                      prefixIcon: const Icon(Icons.lock_outline),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton.tonal(
+                      onPressed: _saving ? null : _changePassword,
+                      child: Text(T.changePassBtn),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            if (_msg != null) ...[
+              const SizedBox(height: 12),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: _msgOk ? AppColors.primary.withOpacity(0.12) : Colors.redAccent.withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(_msg!, style: TextStyle(color: _msgOk ? AppColors.primary : Colors.redAccent, fontSize: 13)),
+                ),
+              ),
+            ],
+
+            const Divider(height: 28),
+          ],
 
           // --- Appearance & language ---
           SwitchListTile(
@@ -256,6 +306,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               onChanged: (v) => ref.read(localeProvider.notifier).set(v ?? 'fa'),
             ),
           ),
+          const Divider(height: 28),
           ListTile(
             leading: const Icon(Icons.info_outline),
             title: Text(T.about),
@@ -263,12 +314,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             onTap: () {},
           ),
 
-          const Divider(height: 28),
-          ListTile(
-            leading: const Icon(Icons.logout, color: Colors.redAccent),
-            title: Text(T.signOut, style: const TextStyle(color: Colors.redAccent)),
-            onTap: () => ref.read(authControllerProvider).signOut(),
-          ),
           const SizedBox(height: 20),
         ],
       ),

@@ -66,7 +66,7 @@ class HomeScreen extends ConsumerWidget {
                               Text(
                                 user.isNotEmpty ? '${greetingMessage()} $user' : greetingMessage(),
                                 style: const TextStyle(
-                                  fontSize: 22,
+                                  fontSize: 20,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.white,
                                 ),
@@ -75,16 +75,22 @@ class HomeScreen extends ConsumerWidget {
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                T.lang == 'en' ? 'Iran Seda Music' : 'آهنگ‌های ایران‌سدا',
+                                T.lang == 'en' ? 'Start your day with a song' : 'روزتون رو با آهنگ شروع کنید',
                                 style: const TextStyle(fontSize: 13, color: AppColors.greyText),
                               ),
                             ],
                           ),
                         ),
-                        CircleAvatar(
-                          radius: 20,
-                          backgroundColor: AppColors.darkElevated,
-                          child: const Icon(Icons.person_outline, color: Colors.white, size: 22),
+                        GestureDetector(
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const ProfileScreen()),
+                          ),
+                          child: CircleAvatar(
+                            radius: 20,
+                            backgroundColor: AppColors.darkElevated,
+                            child: const Icon(Icons.person_outline, color: Colors.white, size: 22),
+                          ),
                         ),
                       ],
                     ),

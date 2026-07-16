@@ -1,8 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/song.dart';
 import 'core_providers.dart';
 
-/// Set of liked song IDs for the current user.
+/// Set of liked song IDs for the current user (or local guest storage).
 class LikesNotifier extends StateNotifier<Set<String>> {
   final Ref ref;
   LikesNotifier(this.ref) : super({}) {
@@ -11,7 +12,13 @@ class LikesNotifier extends StateNotifier<Set<String>> {
 
   Future<void> load() async {
     final user = ref.read(currentUserProvider);
-    if (user == null) return;
+    if (user == null) {
+      // guest: read from local prefs
+      final prefs = await SharedPreferences.getInstance();
+      final list = prefs.getStringList('guest_likes') ?? [];
+      state = list.toSet();
+      return;
+    }
     final ids = await ref.read(databaseProvider).getLikedSongIds(user.id);
     state = ids.toSet();
   }
@@ -20,14 +27,27 @@ class LikesNotifier extends StateNotifier<Set<String>> {
 
   Future<void> toggle(String songId) async {
     final user = ref.read(currentUserProvider);
-    if (user == null) return;
     final db = ref.read(databaseProvider);
-    if (state.contains(songId)) {
-      await db.unlike(user.id, songId);
+    final liked = state.contains(songId);
+    if (liked) {
       state = {...state}..remove(songId);
     } else {
-      await db.like(user.id, songId);
       state = {...state, songId};
+    }
+    // Persist
+    if (user == null) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setStringList('guest_likes', state.toList());
+    } else {
+      try {
+        if (liked) {
+          await db.unlike(user.id, songId);
+        } else {
+          await db.like(user.id, songId);
+        }
+      } catch (_) {
+        // ignore DB errors (e.g. RLS) — local state already updated
+      }
     }
   }
 }

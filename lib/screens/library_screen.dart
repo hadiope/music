@@ -5,6 +5,7 @@ import '../core/genres.dart';
 import '../core/theme.dart';
 import '../providers/likes_provider.dart';
 import '../providers/settings_provider.dart';
+import '../providers/core_providers.dart';
 import '../providers/playlist_provider.dart';
 import '../providers/player_provider.dart';
 import '../widgets/song_tile.dart';
@@ -15,6 +16,7 @@ import 'local_songs_screen.dart';
 import 'genre_screen.dart';
 import 'device_songs_screen.dart';
 import 'device_library_screen.dart';
+import 'auth_screen.dart';
 
 class LibraryScreen extends ConsumerWidget {
   const LibraryScreen({super.key});
@@ -27,7 +29,7 @@ class LibraryScreen extends ConsumerWidget {
     final playlists = ref.watch(playlistsProvider);
 
     return DefaultTabController(
-      length: 4,
+      length: 3,
       child: Scaffold(
         appBar: AppBar(
           title: Text(T.library),
@@ -35,25 +37,8 @@ class LibraryScreen extends ConsumerWidget {
             Tab(text: '❤️ ${T.liked}'),
             Tab(text: T.playlists),
             Tab(text: T.nowPlaying),
-            Tab(text: T.lang == 'en' ? 'My Music' : 'موزیک‌های من'),
           ]),
           actions: [
-            IconButton(
-              icon: const Icon(Icons.audiotrack),
-              tooltip: T.lang == 'en' ? 'Device songs' : 'آهنگ‌های گوشی',
-              onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const DeviceLibraryScreen()),
-              ),
-            ),
-            IconButton(
-              icon: const Icon(Icons.folder_open),
-              tooltip: T.addFromDevice,
-              onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const LocalSongsScreen()),
-              ),
-            ),
             IconButton(
               icon: const Icon(Icons.add_circle_outline),
               tooltip: T.playlists,
@@ -110,7 +95,6 @@ class LibraryScreen extends ConsumerWidget {
                     error: (e, __) => Center(child: Text(T.errGeneric.replaceAll('{e}', e.toString()))),
                   ),
                   _songList(context, ref, history),
-                  const DeviceLibraryScreen(),
                 ],
               ),
             ),
@@ -141,6 +125,19 @@ class LibraryScreen extends ConsumerWidget {
   }
 
   void _createPlaylistDialog(BuildContext context, WidgetRef ref) {
+    final user = ref.read(currentUserProvider);
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(T.guestPlaylistBlocked),
+          action: SnackBarAction(
+            label: T.signIn,
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AuthScreen())),
+          ),
+        ),
+      );
+      return;
+    }
     final ctrl = TextEditingController();
     showDialog(
       context: context,

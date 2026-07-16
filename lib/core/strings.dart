@@ -13,7 +13,7 @@ class T {
   static String get home => _lang == 'en' ? 'Home' : 'خانه';
   static String get search => _lang == 'en' ? 'Search' : 'جستجو';
   static String get library => _lang == 'en' ? 'Library' : 'کتابخانه';
-  static String get profile => _lang == 'en' ? 'Profile' : 'پروفایل';
+  static String get myMusic => _lang == 'en' ? 'My Music' : 'آهنگ‌های من';
   static String get categories => _lang == 'en' ? 'Categories' : 'دسته‌بندی‌ها';
   static String get nowPlaying => _lang == 'en' ? 'Now Playing' : 'در حال پخش';
   static String get liked => _lang == 'en' ? 'Liked' : 'پسندیده';
@@ -29,7 +29,7 @@ class T {
 
   // auth / guest
   static String get continueAsGuest => _lang == 'en' ? 'Continue as guest' : 'ورود به عنوان مهمان';
-  static String get signIn => _lang == 'en' ? 'Sign in' : 'ورود';
+  static String get signInToAccount => _lang == 'en' ? 'Sign in to your account' : 'ورود به حساب کاربری';
   static String get signUp => _lang == 'en' ? 'Sign up' : 'ثبت‌نام';
 
   // player
@@ -49,7 +49,9 @@ class T {
       ? 'App installed successfully ✅\n\nTo activate songs and sign-in,\nadd your Supabase keys in\nlib/core/constants.dart\nand rebuild.'
       : 'اپ با موفقیت نصب شد ✅\n\nبرای فعال شدن آهنگ‌ها و ورود،\nباید اطلاعات Supabase را در فایل\nlib/core/constants.dart وارد کنی\nو دوباره build بگیری.';
   static String get noPlaylists => _lang == 'en' ? "You have no playlists" : 'پلی‌لیستی نداری';
-  static String get createFirstPlaylist => _lang == 'en' ? 'Create your first playlist' : 'بساز اولین پلی‌لیست';
+  static String get guestPlaylistBlocked => _lang == 'en'
+      ? 'You need to sign in to create playlists'
+      : 'برای ساخت پلی‌لیست باید وارد حساب کاربری شوید';
   static String get newPlaylist => _lang == 'en' ? 'New playlist' : 'پلی‌لیست جدید';
   static String get playlistName => _lang == 'en' ? 'Playlist name' : 'اسم پلی‌لیست';
   static String get cancel => _lang == 'en' ? 'Cancel' : 'لغو';
