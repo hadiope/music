@@ -10,6 +10,11 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    env:
+      KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+      KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+      KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+      KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -115,11 +120,7 @@ jobs:
           set -e
           python3 .github/workflows/merge_manifest.py
 
-      # Set SDK versions (signing disabled for now — unsigned APK is fine for
-      # sideload/testing; re-enable once a valid keystore secret is provided).
-      # sign_apk.py sets compileSdk=36 on the app module AND injects a correct
-      # Kotlin-DSL subprojects block. Without KEYSTORE_PASSWORD/KEY_ALIAS it
-      # skips the signing injection but still configures the SDK versions.
+      # Set SDK versions + inject release signing (reads KEYSTORE_* from env)
       - name: Set SDK versions + signing config
         run: |
           python3 .github/workflows/sign_apk.py
