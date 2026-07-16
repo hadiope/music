@@ -23,7 +23,6 @@ dependencies:
   just_audio: ^0.9.40
   audio_service: ^0.18.15
   just_audio_background: ^0.0.1-beta.13
-  on_audio_query: ^2.9.0
 
   # UI / UX
   cached_network_image: ^3.3.1
@@ -39,7 +38,8 @@ dependencies:
   file_picker: ^8.0.0
   permission_handler: ^11.3.1
   intl: ^0.20.2
-  # NOTE: app_links removed — SDK range conflict with Flutter 3.24; deep links handled in main.dart
+  # Deep linking (open playlist from shared link)
+  app_links: ^6.4.0
 dev_dependencies:
   flutter_lints: ^4.0.0
 

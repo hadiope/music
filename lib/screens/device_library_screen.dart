@@ -2,7 +2,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:on_audio_query/on_audio_query.dart';
 import '../models/song.dart';
 import '../services/audio_handler.dart';
 import '../widgets/net_image.dart';
@@ -32,7 +31,6 @@ class _DeviceLibraryScreenState extends ConsumerState<DeviceLibraryScreen> {
   Future<void> _load() async {
     setState(() => _loading = true);
     try {
-      // Request storage permission (scoped to audio on modern Android)
       final status = await Permission.audio.request();
       if (!status.isGranted) {
         final legacy = await Permission.storage.request();
@@ -45,10 +43,45 @@ class _DeviceLibraryScreenState extends ConsumerState<DeviceLibraryScreen> {
         }
       }
 
-      // Use MediaStore via on_audio_query (works on Android 10+ scoped storage)
-      final fetched = await _queryWithFallback();
+      final roots = [
+        '/storage/emulated/0/Music',
+        '/storage/emulated/0/Download',
+        '/storage/emulated/0/DCIM',
+        '/storage/emulated/0/Audio',
+        '/storage/emulated/0/Sounds',
+      ];
+
+      final found = <Song>[];
+      for (final root in roots) {
+        final dir = Directory(root);
+        if (!await dir.exists()) continue;
+        await for (final entity in dir.list(recursive: true, followLinks: false)) {
+          if (entity is File) {
+            final ext = entity.path.toLowerCase();
+            if (ext.endsWith('.mp3') ||
+                ext.endsWith('.m4a') ||
+                ext.endsWith('.aac') ||
+                ext.endsWith('.flac') ||
+                ext.endsWith('.wav') ||
+                ext.endsWith('.ogg')) {
+              final name = entity.path.split('/').last;
+              found.add(Song(
+                id: 'device_${entity.path.hashCode}',
+                title: name.replaceAll(RegExp(r'\.(mp3|m4a|aac|flac|wav|ogg)$'), ''),
+                artist: 'دستگاه',
+                audioUrl: entity.path,
+                coverUrl: '',
+                genre: '',
+                album: '',
+                plays: 0,
+              ));
+            }
+          }
+        }
+      }
+
       setState(() {
-        _songs = fetched;
+        _songs = found;
         _loading = false;
       });
     } catch (e) {
@@ -59,75 +92,11 @@ class _DeviceLibraryScreenState extends ConsumerState<DeviceLibraryScreen> {
     }
   }
 
-  /// Try on_audio_query (MediaStore). If the plugin is unavailable or
-  /// throws, fall back to scanning known folders (older Android / rooted).
-  Future<List<Song>> _queryWithFallback() async {
-    try {
-      final List<Song> out = [];
-      final simple = await OnAudioQuery().querySongs(sortType: SongSortType.TITLE);
-      for (final a in simple) {
-        out.add(Song(
-          id: 'device_${a.id}',
-          title: a.title,
-          artist: a.artist ?? 'نامشخص',
-          audioUrl: a.uri ?? '',
-          coverUrl: '',
-          genre: a.genre ?? '',
-          album: a.album ?? '',
-          plays: a.duration ?? 0,
-        ));
-      }
-      if (out.isNotEmpty) return out;
-    } catch (e) {
-      debugPrint('on_audio_query failed: $e');
-    }
-    // Fallback: manual folder scan
-    return _scanFolders();
-  }
-
-  Future<List<Song>> _scanFolders() async {
-    final roots = [
-      '/storage/emulated/0/Music',
-      '/storage/emulated/0/Download',
-      '/storage/emulated/0/DCIM',
-      '/storage/emulated/0/Audio',
-    ];
-    final found = <Song>[];
-    for (final root in roots) {
-      final dir = Directory(root);
-      if (!await dir.exists()) continue;
-      await for (final entity in dir.list(recursive: true, followLinks: false)) {
-        if (entity is File) {
-          final ext = entity.path.toLowerCase();
-          if (ext.endsWith('.mp3') ||
-              ext.endsWith('.m4a') ||
-              ext.endsWith('.aac') ||
-              ext.endsWith('.flac') ||
-              ext.endsWith('.wav') ||
-              ext.endsWith('.ogg')) {
-            final name = entity.path.split('/').last;
-            found.add(Song(
-              id: 'device_${entity.path.hashCode}',
-              title: name.replaceAll(RegExp(r'\.(mp3|m4a|aac|flac|wav|ogg)$'), ''),
-              artist: 'دستگاه',
-              audioUrl: entity.path,
-              coverUrl: '',
-              genre: '',
-              album: '',
-              plays: 0,
-            ));
-          }
-        }
-      }
-    }
-    return found;
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('آهنگ‌های دستگاه'),
+        title: const Text('موزیک‌های من'),
         actions: [
           IconButton(icon: const Icon(Icons.refresh), onPressed: _load),
         ],

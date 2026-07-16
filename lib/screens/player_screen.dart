@@ -7,6 +7,7 @@ import '../core/constants.dart';
 import '../core/strings.dart';
 import '../providers/core_providers.dart';
 import '../providers/likes_provider.dart';
+import '../core/theme.dart';
 
 class PlayerScreen extends ConsumerStatefulWidget {
   const PlayerScreen({super.key});
@@ -25,11 +26,23 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
   Widget build(BuildContext context) {
     final handler = ref.watch(audioHandlerProvider);
     final likes = ref.watch(likesProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(icon: const Icon(Icons.keyboard_arrow_down), onPressed: () => Navigator.pop(context)),
         title: Text(T.nowPlayingTitle),
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topRight,
+              end: Alignment.bottomLeft,
+              colors: isDark
+                  ? [AppColors.primaryDark.withOpacity(0.7), Colors.transparent]
+                  : [AppColors.primary.withOpacity(0.6), Colors.transparent],
+            ),
+          ),
+        ),
       ),
       body: ValueListenableBuilder<int>(
         valueListenable: handler.indexNotifier,

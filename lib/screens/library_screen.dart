@@ -26,7 +26,7 @@ class LibraryScreen extends ConsumerWidget {
     final playlists = ref.watch(playlistsProvider);
 
     return DefaultTabController(
-      length: 3,
+      length: 4,
       child: Scaffold(
         appBar: AppBar(
           title: Text(T.library),
@@ -34,6 +34,7 @@ class LibraryScreen extends ConsumerWidget {
             Tab(text: '❤️ ${T.liked}'),
             Tab(text: T.playlists),
             Tab(text: T.nowPlaying),
+            Tab(text: T.lang == 'en' ? 'My Music' : 'موزیک‌های من'),
           ]),
           actions: [
             IconButton(
@@ -97,6 +98,7 @@ class LibraryScreen extends ConsumerWidget {
                     error: (e, __) => Center(child: Text(T.errGeneric.replaceAll('{e}', e.toString()))),
                   ),
                   _songList(context, ref, history),
+                  const DeviceLibraryScreen(),
                 ],
               ),
             ),

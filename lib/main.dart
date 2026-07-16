@@ -5,15 +5,39 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:just_audio_background/just_audio_background.dart';
+import 'package:app_links/app_links.dart';
 import 'core/constants.dart';
 import 'core/theme.dart';
 import 'core/strings.dart';
 import 'providers/settings_provider.dart';
 import 'providers/core_providers.dart';
+import 'providers/playlist_provider.dart';
 import 'screens/splash_screen.dart';
 import 'screens/main_shell.dart';
 import 'screens/playlist_detail_screen.dart';
 import 'models/playlist.dart';
+
+/// Parses a deep link (https://hadiope.github.io/music/#/playlist/<id>
+/// or shad://playlist/<id>) into a playlist id, or null.
+String? _parsePlaylistId(String? link) {
+  if (link == null || link.isEmpty) return null;
+  // hash route from github pages
+  final hash = Uri.parse(link);
+  if (hash.fragment.startsWith('/playlist/')) {
+    return hash.fragment.split('/')[2];
+  }
+  // scheme host route
+  final uri = Uri.parse(link);
+  if ((uri.scheme == 'shad' || uri.scheme == 'https') &&
+      uri.host == 'hadiope.github.io' &&
+      uri.path.startsWith('/music/playlist/')) {
+    return uri.pathSegments.last;
+  }
+  if (uri.scheme == 'iranseda' && uri.host == 'playlist') {
+    return uri.pathSegments.isNotEmpty ? uri.pathSegments.first : null;
+  }
+  return null;
+}
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -62,12 +86,50 @@ class _HarmonyAppState extends ConsumerState<HarmonyApp> with WidgetsBindingObse
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _initDeepLinks();
+  }
+
+  Future<void> _initDeepLinks() async {
+    final appLinks = AppLinks();
+    // Handle link that opened the app (cold start)
+    try {
+      final initial = await appLinks.getInitialLink();
+      if (initial != null) _openPlaylistFromLink(initial.toString());
+    } catch (e) {
+      debugPrint('getInitialLink failed: $e');
+    }
+    // Handle links while app is running
+    appLinks.uriLinkStream.listen((uri) {
+      _openPlaylistFromLink(uri.toString());
+    });
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
+  }
+
+  /// Handle deep-link when app is opened from a link (cold start or resume).
+  Future<void> _openPlaylistFromLink(String? link) async {
+    final id = _parsePlaylistId(link);
+    if (id == null || !mounted) return;
+    // Wait for playlists to load, then navigate.
+    final playlists = await ref.read(playlistsProvider.future);
+    if (!mounted) return;
+    final pl = playlists.where((p) => p.id == id).firstOrNull;
+    if (pl != null && context.mounted) {
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => PlaylistDetailScreen(playlist: pl)),
+      );
+    }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Cold-start deep links are handled by the OS passing the intent to
+    // MainActivity; we re-check on resume for safety.
+    super.didChangeAppLifecycleState(state);
   }
 
   @override
@@ -96,7 +158,41 @@ class _HarmonyAppState extends ConsumerState<HarmonyApp> with WidgetsBindingObse
           child: child!,
         );
       },
+      onGenerateRoute: (settings) {
+        final id = _parsePlaylistId(settings.name);
+        if (id != null) {
+          return MaterialPageRoute(
+            builder: (_) => _DeepLinkPlaylistLoader(playlistId: id),
+          );
+        }
+        return null;
+      },
       home: widget.supabaseReady ? const SplashScreen() : const _SetupNeededScreen(),
+    );
+  }
+}
+
+/// Loads a playlist by id (from a deep link) and opens its detail screen.
+class _DeepLinkPlaylistLoader extends ConsumerWidget {
+  final String playlistId;
+  const _DeepLinkPlaylistLoader({required this.playlistId});
+
+  @override
+  Widget build(BuildContext, WidgetRef ref) {
+    final playlists = ref.watch(playlistsProvider);
+    return playlists.when(
+      data: (list) {
+        final pl = list.where((p) => p.id == playlistId).firstOrNull;
+        if (pl == null) {
+          return Scaffold(
+            appBar: AppBar(),
+            body: const Center(child: Text('پلی‌لیست پیدا نشد')),
+          );
+        }
+        return PlaylistDetailScreen(playlist: pl);
+      },
+      loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
+      error: (e, _) => Scaffold(body: Center(child: Text('خطا: $e'))),
     );
   }
 }

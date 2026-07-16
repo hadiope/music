@@ -8,13 +8,12 @@ import '../widgets/net_image.dart';
 import '../providers/songs_provider.dart';
 import '../providers/player_provider.dart';
 import '../providers/settings_provider.dart';
-import '../widgets/banner_carousel.dart';
 import '../widgets/section_header.dart';
 import '../widgets/song_tile.dart';
+import '../core/theme.dart';
 import 'player_screen.dart';
 import 'genre_screen.dart';
 import '../widgets/local_banner.dart';
-import '../widgets/banner_carousel.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -35,6 +34,7 @@ class HomeScreen extends ConsumerWidget {
     final newReleases = ref.watch(newReleasesProvider);
     final popular = ref.watch(popularProvider);
     final user = _userName();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       body: RefreshIndicator(
@@ -45,31 +45,80 @@ class HomeScreen extends ConsumerWidget {
         },
         child: CustomScrollView(
           slivers: [
+            // Modern gradient header
             SliverAppBar(
+              expandedHeight: 120,
               floating: true,
-              title: Text(
-                user.isNotEmpty ? '${greetingMessage()} $user' : greetingMessage(),
-                style: const TextStyle(fontWeight: FontWeight.bold),
+              pinned: false,
+              flexibleSpace: FlexibleSpaceBar(
+                background: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topRight,
+                      end: Alignment.bottomLeft,
+                      colors: isDark
+                          ? [AppColors.primaryDark.withOpacity(0.9), AppColors.darkBg]
+                          : [AppColors.primary.withOpacity(0.85), AppColors.lightBg],
+                    ),
+                  ),
+                  child: SafeArea(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                      child: Row(
+                        children: [
+                          CircleAvatar(
+                            radius: 22,
+                            backgroundColor: Colors.white24,
+                            child: Icon(Icons.music_note, color: Colors.white, size: 26),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  user.isNotEmpty ? '${greetingMessage()} $user' : greetingMessage(),
+                                  style: const TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                Text(
+                                  T.lang == 'en' ? 'Iran Seda Music' : 'آهنگ‌های ایران‌سدا',
+                                  style: const TextStyle(fontSize: 13, color: Colors.white70),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
               ),
             ),
-            // Local promo banner (links to shad://l.shad.ir/TextStory)
+            // Local promo banner (links to shad.ir/TextStory)
             const SliverToBoxAdapter(
               child: Padding(
-                padding: EdgeInsets.only(top: 8),
+                padding: EdgeInsets.only(top: 12, left: 16, right: 16),
                 child: LocalBanner(),
               ),
             ),
-            // Genre cards (Iranian categories)
+            // Genre cards (Iranian categories) — rounded, shadowed
             SliverToBoxAdapter(
               child: SectionHeader(title: T.categories),
             ),
             SliverToBoxAdapter(
               child: SizedBox(
-                height: 132,
+                height: 140,
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.symmetric(horizontal: 16),
-                  separatorBuilder: (_, __) => const SizedBox(width: 12),
+                  separatorBuilder: (_, __) => const SizedBox(width: 14),
                   itemCount: genresList.length,
                   itemBuilder: (_, i) {
                     final g = genresList[i];
@@ -78,30 +127,49 @@ class HomeScreen extends ConsumerWidget {
                         context,
                         MaterialPageRoute(builder: (_) => GenreScreen(genre: g.name)),
                       ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(16),
-                        child: Stack(
-                          fit: StackFit.expand,
-                          children: [
-                            NetImage(g.imageUrl, width: 120, height: 132, radius: 0),
-                            Container(
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  begin: Alignment.bottomCenter,
-                                  end: Alignment.topCenter,
-                                  colors: [Colors.black.withOpacity(0.7), Colors.transparent],
-                                ),
-                              ),
-                            ),
-                            Align(
-                              alignment: Alignment.bottomRight,
-                              child: Padding(
-                                padding: const EdgeInsets.all(10),
-                                child: Text(g.name,
-                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white)),
-                              ),
+                      child: Container(
+                        width: 124,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(18),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(isDark ? 0.4 : 0.15),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
                             ),
                           ],
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(18),
+                          child: Stack(
+                            fit: StackFit.expand,
+                            children: [
+                              NetImage(g.imageUrl, width: 124, height: 140, radius: 0),
+                              Container(
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    begin: Alignment.bottomCenter,
+                                    end: Alignment.topCenter,
+                                    colors: [Colors.black.withOpacity(0.75), Colors.transparent],
+                                  ),
+                                ),
+                              ),
+                              Align(
+                                alignment: Alignment.bottomRight,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(12),
+                                  child: Text(
+                                    g.name,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     );
@@ -116,14 +184,14 @@ class HomeScreen extends ConsumerWidget {
             SliverToBoxAdapter(
               child: newReleases.when(
                 data: (songs) => SizedBox(
-                  height: 200,
+                  height: 210,
                   child: songs.isEmpty
                       ? const SizedBox.shrink()
                       : ListView.separated(
                           scrollDirection: Axis.horizontal,
                           padding: const EdgeInsets.symmetric(horizontal: 16),
                           itemCount: songs.length,
-                          separatorBuilder: (_, __) => const SizedBox(width: 12),
+                          separatorBuilder: (_, __) => const SizedBox(width: 14),
                           itemBuilder: (_, i) => SongCard(
                             song: songs[i],
                             onTap: () {
@@ -133,7 +201,7 @@ class HomeScreen extends ConsumerWidget {
                           ),
                         ),
                 ),
-                loading: () => const SizedBox(height: 200, child: Center(child: CircularProgressIndicator())),
+                loading: () => const SizedBox(height: 210, child: Center(child: CircularProgressIndicator())),
                 error: (e, __) => Padding(padding: const EdgeInsets.all(16), child: Text('${T.errorPrefix}$e')),
               ),
             ),
@@ -161,21 +229,6 @@ class HomeScreen extends ConsumerWidget {
           ],
         ),
       ),
-    );
-  }
-}
-
-/// Reads active banners from Supabase and shows them in a carousel.
-class _BannersSlider extends ConsumerWidget {
-  const _BannersSlider();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final banners = ref.watch(bannersProvider);
-    return banners.when(
-      data: (list) => list.isEmpty ? const SizedBox.shrink() : BannerCarousel(banners: list),
-      loading: () => const SizedBox(height: 150, child: Center(child: CircularProgressIndicator())),
-      error: (_, __) => const SizedBox.shrink(),
     );
   }
 }
