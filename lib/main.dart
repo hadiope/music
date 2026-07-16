@@ -5,8 +5,6 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:just_audio_background/just_audio_background.dart';
-import 'package:in_app_update/in_app_update.dart';
-import 'package:app_links/app_links.dart';
 import 'core/constants.dart';
 import 'core/theme.dart';
 import 'core/strings.dart';
@@ -23,7 +21,7 @@ Future<void> main() async {
   // Background audio (notification + lock screen controls)
   try {
     await JustAudioBackground.init(
-      androidNotificationChannelId: 'com.harmony.music.channel.audio',
+      androidNotificationChannelId: 'ir.iranseda.hadi.channel.audio',
       androidNotificationChannelName: 'Iran Seda',
       androidNotificationOngoing: true,
     );
@@ -49,67 +47,7 @@ Future<void> main() async {
   }
 
   runApp(ProviderScope(child: HarmonyApp(supabaseReady: supabaseReady)));
-
-  // Check for in-app update (Android only)
-  _checkForUpdate();
-
-  // Deep link handling (open shared playlist)
-  _initUniLinks();
 }
-
-Future<void> _checkForUpdate() async {
-  if (!kIsWeb) {
-    try {
-      final info = await InAppUpdate.checkForUpdate();
-      if (info.updateAvailability == UpdateAvailability.updateAvailable) {
-        await InAppUpdate.performImmediateUpdate();
-      }
-    } catch (e) {
-      debugPrint('In-app update check failed: $e');
-    }
-  }
-}
-
-/// Parses a playlist deep link (https://thetextstory.com/playlist/<id> or
-/// iranseda://playlist/<id>) and navigates into the app directly to that playlist.
-final _appLinks = AppLinks();
-
-void _initUniLinks() {
-  try {
-    _appLinks.getInitialLink().then(_handleLink);
-    _appLinks.uriLinkStream.listen(_handleLink);
-  } catch (e) {
-    debugPrint('app_links init failed: $e');
-  }
-}
-
-void _handleLink(Uri? link) {
-  if (link == null) return;
-  String? id;
-  final s = link.toString();
-  if (s.startsWith('iranseda://playlist/')) {
-    id = s.replaceFirst('iranseda://playlist/', '');
-  } else if (s.contains('/playlist/')) {
-    id = s.split('/playlist/').last;
-    // strip any trailing query/fragment (e.g. ?utm=...)
-    id = id.split('?').first.split('#').first;
-  }
-  if (id != null && id.isNotEmpty) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final ctx = navigatorKey.currentContext;
-      if (ctx != null) {
-        Navigator.of(ctx).push(
-          MaterialPageRoute(
-            builder: (_) => PlaylistDetailScreen(playlist: Playlist(id: id!, userId: '', name: T.lang == 'en' ? 'Playlist' : 'پلی‌لیست')),
-          ),
-        );
-      }
-    });
-  }
-}
-
-/// Shared across the app so PlaylistDetailScreen can be opened from a link.
-final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 class HarmonyApp extends ConsumerStatefulWidget {
   final bool supabaseReady;
@@ -139,7 +77,6 @@ class _HarmonyAppState extends ConsumerState<HarmonyApp> with WidgetsBindingObse
     T.setLocale(locale.languageCode);
 
     return MaterialApp(
-      navigatorKey: navigatorKey,
       title: 'Iran Seda',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),

@@ -31,9 +31,9 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
         leading: IconButton(icon: const Icon(Icons.keyboard_arrow_down), onPressed: () => Navigator.pop(context)),
         title: Text(T.nowPlayingTitle),
       ),
-      body: StreamBuilder<int?>(
-        stream: handler.currentIndexStream,
-        builder: (context, idxSnap) {
+      body: ValueListenableBuilder<int>(
+        valueListenable: handler.indexNotifier,
+        builder: (context, idx, _) {
           final song = handler.currentSong;
           if (song == null) {
             return Center(child: Text(T.noSongPlaying));
@@ -43,14 +43,58 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
             builder: (context, snap) {
               final playing = snap.data?.playing ?? false;
               final liked = likes.contains(song.id);
+              final queueLen = handler.queue.length;
 
               return Padding(
                 padding: const EdgeInsets.all(24),
                 child: Column(
                   children: [
                     const Spacer(),
-                    // Cover art
-                    NetImage(song.coverUrl, width: 300, height: 300, radius: 16),
+                    // Cover art with swipe-to-change-track
+                    Dismissible(
+                      key: ValueKey(song.id),
+                      direction: DismissDirection.horizontal,
+                      onDismissed: (direction) {
+                        if (direction == DismissDirection.startToEnd) {
+                          handler.previous();
+                        } else {
+                          handler.next();
+                        }
+                      },
+                      background: const Icon(Icons.skip_previous, size: 48, color: Color(0xFF1DB954)),
+                      secondaryBackground: const Icon(Icons.skip_next, size: 48, color: Color(0xFF1DB954)),
+                      child: GestureDetector(
+                        onHorizontalDragEnd: (details) {
+                          if (details.primaryVelocity == null) return;
+                          if (details.primaryVelocity! < 0) {
+                            handler.next();
+                          } else if (details.primaryVelocity! > 0) {
+                            handler.previous();
+                          }
+                        },
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            NetImage(song.coverUrl, width: 300, height: 300, radius: 16),
+                            if (queueLen > 1)
+                              Positioned(
+                                bottom: 8,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: Colors.black54,
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: Text(
+                                    '${idx + 1} / $queueLen',
+                                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
                     const SizedBox(height: 32),
                     // Title + artist + like
                     Row(

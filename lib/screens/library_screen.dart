@@ -13,6 +13,7 @@ import 'playlist_detail_screen.dart';
 import 'local_songs_screen.dart';
 import 'genre_screen.dart';
 import 'device_songs_screen.dart';
+import 'device_library_screen.dart';
 
 class LibraryScreen extends ConsumerWidget {
   const LibraryScreen({super.key});
@@ -40,7 +41,7 @@ class LibraryScreen extends ConsumerWidget {
               tooltip: T.lang == 'en' ? 'Device songs' : 'آهنگ‌های گوشی',
               onPressed: () => Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const DeviceSongsScreen()),
+                MaterialPageRoute(builder: (_) => const DeviceLibraryScreen()),
               ),
             ),
             IconButton(

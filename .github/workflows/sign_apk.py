@@ -47,14 +47,18 @@ def patch_app_module():
 
     pw = os.environ.get("KEYSTORE_PASSWORD", "")
     alias = os.environ.get("KEY_ALIAS", "")
-    if pw and alias and "signingConfigs" not in s:
+    kspath = os.environ.get("KEYSTORE_PATH", "")
+    if not kspath or not os.path.isfile(kspath):
+        # fallback: look in android/app/keystore.jks (decoded from secret in CI)
+        kspath = os.path.join(APP_DIR, "keystore.jks")
+    if pw and alias and os.path.isfile(kspath) and "signingConfigs" not in s:
         if KTS:
             block = (
                 "\n    signingConfigs {\n"
                 "        create(\"release\") {\n"
                 '            keyAlias = "%s"\n' % alias +
                 '            keyPassword = "%s"\n' % pw +
-                '            storeFile = file("/tmp/harmony_release.keystore")\n'
+                '            storeFile = file("%s")\n' % kspath +
                 '            storePassword = "%s"\n' % pw +
                 "        }\n"
                 "    }\n"

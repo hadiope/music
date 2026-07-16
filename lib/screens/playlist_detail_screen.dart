@@ -181,10 +181,9 @@ class _PlaylistDetailScreenState extends ConsumerState<PlaylistDetailScreen> {
   }
 
   void _sharePlaylist(BuildContext context) {
-    // Deep link opens the app straight into this playlist.
-    // https link so Telegram / browsers can open it; the app's Android
-    // App Link / intent-filter catches it and jumps into the playlist.
-    final link = 'https://thetextstory.com/playlist/${widget.playlist.id}';
+    // Web link hosted on GitHub Pages redirects to the app via deep link.
+    // Hash routing so no per-id file is needed on the static host.
+    final link = 'https://hadiope.github.io/music/#/playlist/${widget.playlist.id}?name=${Uri.encodeComponent(widget.playlist.name)}';
     Share.share(
       '${T.lang == 'en' ? 'Playlist' : 'پلی‌لیست'} «${widget.playlist.name}»:\n$link',
       subject: widget.playlist.name,

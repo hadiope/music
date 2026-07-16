@@ -36,7 +36,7 @@ dependencies:
   share_plus: ^9.0.0
   shared_preferences: ^2.2.3
   file_picker: ^8.0.0
-  in_app_update: ^4.2.1
+  permission_handler: ^11.3.1
   intl: ^0.20.2
   # NOTE: app_links removed — SDK range conflict with Flutter 3.24; deep links handled in main.dart
 dev_dependencies:

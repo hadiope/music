@@ -120,19 +120,37 @@ jobs:
       # sign_apk.py sets compileSdk=36 on the app module AND injects a correct
       # Kotlin-DSL subprojects block. Without KEYSTORE_PASSWORD/KEY_ALIAS it
       # skips the signing injection but still configures the SDK versions.
-      - name: Set SDK versions
+      - name: Set SDK versions + signing config
         run: |
           python3 .github/workflows/sign_apk.py
-          echo "sdk configured (no signing)"
+          echo "sdk configured + signing injected"
+
+      - name: Decode keystore from secret
+        run: |
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            echo "$KEYSTORE_BASE64" | base64 -d > android/app/keystore.jks
+            export KEYSTORE_PATH="$(pwd)/android/app/keystore.jks"
+            echo "keystore decoded -> $KEYSTORE_PATH"
+          else
+            echo "no keystore secret, building debug-signed"
+          fi
 
       - name: Get dependencies
         run: flutter pub get
 
-      - name: Build signed APK (release)
+      - name: Build APK (release, signed)
         run: |
           set -e
           cd android
-          ./gradlew assembleRelease --no-daemon
+          if [ -f keystore.jks ]; then
+            ./gradlew assembleRelease --no-daemon \
+              -Pandroid.injected.signing.store.file=$(pwd)/app/keystore.jks \
+              -Pandroid.injected.signing.store.password="$KEYSTORE_PASSWORD" \
+              -Pandroid.injected.signing.key.alias="$KEY_ALIAS" \
+              -Pandroid.injected.signing.key.password="$KEY_PASSWORD"
+          else
+            ./gradlew assembleRelease --no-daemon
+          fi
           cd ..
           APK=build/app/outputs/flutter-apk/app-release.apk
           ALT=android/app/build/outputs/apk/release/app-release.apk
