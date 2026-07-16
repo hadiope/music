@@ -29,6 +29,7 @@ class T {
 
   // auth / guest
   static String get continueAsGuest => _lang == 'en' ? 'Continue as guest' : 'ورود به عنوان مهمان';
+  static String get signIn => _lang == 'en' ? 'Sign in' : 'ورود';
   static String get signInToAccount => _lang == 'en' ? 'Sign in to your account' : 'ورود به حساب کاربری';
   static String get signUp => _lang == 'en' ? 'Sign up' : 'ثبت‌نام';
 
