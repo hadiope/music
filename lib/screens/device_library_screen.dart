@@ -101,13 +101,30 @@ class _DeviceLibraryScreenState extends ConsumerState<DeviceLibraryScreen> {
           IconButton(icon: const Icon(Icons.refresh), onPressed: _load),
         ],
       ),
-      body: _loading
-          ? const Center(child: CircularProgressIndicator())
-          : _error != null
-              ? Center(child: Text(_error!))
-              : _songs.isEmpty
-                  ? const Center(child: Text('آهنگی در حافظه پیدا نشد'))
-                  : ListView.separated(
+      body: Column(
+        children: [
+          // Offline test song (always works — bundled in the app)
+          ListTile(
+            leading: const Icon(Icons.audiotrack, color: Color(0xFF1DB954)),
+            title: const Text('پخش تست (آفلاین)'),
+            subtitle: const Text('اگه این پخش شد، مشکل از فیلتر بودن آهنگ‌هاست'),
+            onTap: () async {
+              final handler = ref.read(audioHandlerProvider);
+              await handler.playLocalFile(
+                'assets/audio/sample.mp3',
+                title: 'تست آفلاین',
+                artist: 'Iran Seda',
+              );
+              if (context.mounted) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const PlayerScreen()),
+                );
+              }
+            },
+          ),
+          const Divider(height: 1),
+          Expanded(
                       itemCount: _songs.length,
                       separatorBuilder: (_, __) => const Divider(height: 1),
                       itemBuilder: (_, i) {
@@ -130,6 +147,9 @@ class _DeviceLibraryScreenState extends ConsumerState<DeviceLibraryScreen> {
                         );
                       },
                     ),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -50,3 +50,4 @@ flutter:
     - assets/images/app_icon.png
     - assets/images/app_icon_fg.png
     - assets/images/login_logo.png
+    - assets/audio/sample.mp3

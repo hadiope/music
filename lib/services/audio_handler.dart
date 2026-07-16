@@ -109,16 +109,18 @@ class AudioPlayerHandler {
     }
   }
 
-  /// Play a single local file (file:// or content:// URI picked by the user).
+  /// Play a single local file (file:// or content:// URI picked by the user),
+  /// or an app-bundled asset path (e.g. 'assets/audio/sample.mp3').
   Future<bool> playLocalFile(String path,
       {String? title, String? artist}) async {
     title ??= T.localSongTitleDefault;
     artist ??= T.localSongArtistDefault;
+    final isAsset = path.startsWith('assets/');
     final uri = (path.startsWith('http') ||
             path.startsWith('file://') ||
             path.startsWith('content://'))
         ? path
-        : 'file://$path';
+        : (isAsset ? path : 'file://$path');
     final song = Song(
       id: 'local_${path.hashCode}',
       title: title,
@@ -133,16 +135,14 @@ class AudioPlayerHandler {
     _currentIndex = 0;
     _indexNotifier.value = 0;
     try {
-      await player.setAudioSource(
-        AudioSource.uri(
-          Uri.parse(uri),
-          tag: MediaItem(
-            id: song.id,
-            title: song.title,
-            artist: song.artist,
-          ),
-        ),
-      );
+      final source = isAsset
+          ? AudioSource.asset(uri,
+              tag: MediaItem(id: song.id, title: song.title, artist: song.artist))
+          : AudioSource.uri(
+              Uri.parse(uri),
+              tag: MediaItem(id: song.id, title: song.title, artist: song.artist),
+            );
+      await player.setAudioSource(source);
       await player.play();
       return true;
     } catch (e) {
