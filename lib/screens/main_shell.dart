@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/strings.dart';
 import '../core/theme.dart';
+import '../providers/settings_provider.dart';
 import '../widgets/mini_player.dart';
 import 'home_screen.dart';
 import 'search_screen.dart';
