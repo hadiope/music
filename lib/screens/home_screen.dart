@@ -10,6 +10,7 @@ import '../providers/player_provider.dart';
 import '../providers/settings_provider.dart';
 import '../widgets/section_header.dart';
 import '../widgets/song_tile.dart';
+import '../widgets/ui_kit.dart';
 import '../core/theme.dart';
 import 'player_screen.dart';
 import 'genre_screen.dart';

@@ -8,6 +8,7 @@ import '../providers/settings_provider.dart';
 import '../providers/playlist_provider.dart';
 import '../providers/player_provider.dart';
 import '../widgets/song_tile.dart';
+import '../widgets/ui_kit.dart';
 import 'player_screen.dart';
 import 'playlist_detail_screen.dart';
 import 'local_songs_screen.dart';
@@ -82,15 +83,26 @@ class LibraryScreen extends ConsumerWidget {
                               ],
                             ),
                           )
-                        : ListView.builder(
+                        : ListView.separated(
+                            padding: const EdgeInsets.all(12),
                             itemCount: list.length,
-                            itemBuilder: (_, i) => ListTile(
-                              leading: const CircleAvatar(child: Icon(Icons.queue_music)),
-                              title: Text(list[i].name),
-                              trailing: const Icon(Icons.chevron_left),
-                              onTap: () => Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: (_) => PlaylistDetailScreen(playlist: list[i])),
+                            separatorBuilder: (_, __) => const SizedBox(height: 10),
+                            itemBuilder: (_, i) => Container(
+                              decoration: UiKit.cardDecoration(context),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(16),
+                                child: ListTile(
+                                  leading: const CircleAvatar(
+                                    backgroundColor: AppColors.primary,
+                                    child: Icon(Icons.queue_music, color: Colors.white),
+                                  ),
+                                  title: Text(list[i].name),
+                                  trailing: const Icon(Icons.chevron_left),
+                                  onTap: () => Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (_) => PlaylistDetailScreen(playlist: list[i])),
+                                  ),
+                                ),
                               ),
                             ),
                           ),

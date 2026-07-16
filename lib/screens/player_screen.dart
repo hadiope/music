@@ -88,7 +88,22 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
                         child: Stack(
                           alignment: Alignment.center,
                           children: [
-                            NetImage(song.coverUrl, width: 300, height: 300, radius: 16),
+                            Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(24),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppColors.primary.withOpacity(0.35),
+                                    blurRadius: 30,
+                                    offset: const Offset(0, 12),
+                                  ),
+                                ],
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(24),
+                                child: NetImage(song.coverUrl, width: 300, height: 300, radius: 0),
+                              ),
+                            ),
                             if (queueLen > 1)
                               Positioned(
                                 bottom: 8,

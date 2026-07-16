@@ -12,6 +12,8 @@ import '../providers/playlist_provider.dart';
 import '../providers/songs_provider.dart';
 import '../providers/player_provider.dart';
 import '../widgets/song_tile.dart';
+import '../widgets/ui_kit.dart';
+import '../core/theme.dart';
 import 'player_screen.dart';
 import 'local_songs_screen.dart';
 
@@ -58,49 +60,71 @@ class _PlaylistDetailScreenState extends ConsumerState<PlaylistDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final songs = ref.watch(playlistSongsProvider(widget.playlist.id));
     return Scaffold(
-      appBar: AppBar(title: Text(widget.playlist.name)),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Row(
-              children: [
-                Expanded(
-                  child: FilledButton.icon(
-                    onPressed: () => _addFromApp(context, ref),
-                    icon: const Icon(Icons.music_note),
-                    label: Text(T.addFromApp),
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            expandedHeight: 170,
+            pinned: true,
+            flexibleSpace: FlexibleSpaceBar(
+              title: Text(widget.playlist.name,
+                  style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+              background: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topRight,
+                    end: Alignment.bottomLeft,
+                    colors: [AppColors.primary, isDark ? AppColors.darkBg : AppColors.lightBg],
                   ),
                 ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () => _addFromDevice(context, ref),
-                    icon: const Icon(Icons.folder_open),
-                    label: Text(T.addFromDevice),
+                child: const Center(
+                  child: Icon(Icons.queue_music, size: 64, color: Colors.white70),
+                ),
+              ),
+            ),
+            actions: [
+              IconButton(
+                onPressed: () => _sharePlaylist(context),
+                icon: const Icon(Icons.share),
+                tooltip: T.lang == 'en' ? 'Share' : 'اشتراک‌گذاری',
+              ),
+            ],
+          ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.all(14),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: FilledButton.icon(
+                      onPressed: () => _addFromApp(context, ref),
+                      icon: const Icon(Icons.music_note),
+                      label: Text(T.addFromApp),
+                    ),
                   ),
-                ),
-                const SizedBox(width: 10),
-                IconButton(
-                  onPressed: () => _sharePlaylist(context),
-                  icon: const Icon(Icons.share),
-                  tooltip: T.lang == 'en' ? 'Share' : 'اشتراک‌گذاری',
-                ),
-              ],
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () => _addFromDevice(context, ref),
+                      icon: const Icon(Icons.folder_open),
+                      label: Text(T.addFromDevice),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-          Expanded(
+          SliverFillRemaining(
             child: songs.when(
               data: (list) {
                 final hasItems = list.isNotEmpty || _local.isNotEmpty;
                 if (!hasItems) {
-                  return Center(
-                    child: Text(T.noPlaylist),
-                  );
+                  return Center(child: Text(T.noPlaylist));
                 }
                 return ListView(
+                  padding: const EdgeInsets.symmetric(horizontal: 6),
                   children: [
                     ...list.asMap().entries.map((e) => SongTile(
                           song: e.value,
@@ -111,19 +135,29 @@ class _PlaylistDetailScreenState extends ConsumerState<PlaylistDetailScreen> {
                         )),
                     ..._local.asMap().entries.map((e) {
                       final s = e.value;
-                      return ListTile(
-                        leading: const CircleAvatar(child: Icon(Icons.audio_file)),
-                        title: Text(s.name, maxLines: 1, overflow: TextOverflow.ellipsis),
-                        subtitle: Text(T.deviceSong),
-                        trailing: const Icon(Icons.play_arrow),
-                        onTap: () {
-                          ref.read(audioHandlerProvider).playLocalFile(s.path, title: s.name);
-                          if (mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text(T.lang == 'en' ? 'Playing: ${s.name}' : 'در حال پخش: ${s.name}')),
-                            );
-                          }
-                        },
+                      return Container(
+                        decoration: UiKit.cardDecoration(context),
+                        margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(14),
+                          child: ListTile(
+                            leading: const CircleAvatar(
+                              backgroundColor: AppColors.primary,
+                              child: Icon(Icons.audio_file, color: Colors.white),
+                            ),
+                            title: Text(s.name, maxLines: 1, overflow: TextOverflow.ellipsis),
+                            subtitle: Text(T.deviceSong),
+                            trailing: const Icon(Icons.play_arrow),
+                            onTap: () {
+                              ref.read(audioHandlerProvider).playLocalFile(s.path, title: s.name);
+                              if (mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text(T.lang == 'en' ? 'Playing: ${s.name}' : 'در حال پخش: ${s.name}')),
+                                );
+                              }
+                            },
+                          ),
+                        ),
                       );
                     }),
                   ],

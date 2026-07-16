@@ -106,26 +106,38 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: Text(T.profileSettings)),
       body: ListView(
         children: [
-          const SizedBox(height: 20),
-          Center(
-            child: CircleAvatar(
-              radius: 44,
-              backgroundColor: AppColors.primary,
-              child: Text(
-                (name.isNotEmpty ? name[0] : _email()[0]).toUpperCase(),
-                style: const TextStyle(fontSize: 36, color: Colors.white, fontWeight: FontWeight.bold),
+          Container(
+            padding: const EdgeInsets.only(top: 40, bottom: 24),
+            decoration: BoxDecoration(
+              gradient: AppTheme.brandGradient,
+              borderRadius: const BorderRadius.only(
+                bottomLeft: Radius.circular(28),
+                bottomRight: Radius.circular(28),
               ),
             ),
+            child: Column(
+              children: [
+                CircleAvatar(
+                  radius: 46,
+                  backgroundColor: Colors.white,
+                  child: CircleAvatar(
+                    radius: 42,
+                    backgroundColor: AppColors.primary,
+                    child: Text(
+                      (name.isNotEmpty ? name[0] : _email()[0]).toUpperCase(),
+                      style: const TextStyle(fontSize: 34, color: Colors.white, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(name.isNotEmpty ? name : _email(),
+                    style: const TextStyle(fontSize: 19, fontWeight: FontWeight.bold, color: Colors.white)),
+                Text(_email(), style: const TextStyle(color: Colors.white70, fontSize: 13)),
+              ],
+            ),
           ),
-          const SizedBox(height: 12),
-          Center(
-            child: Text(name.isNotEmpty ? name : _email(),
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-          ),
-          Center(child: Text(_email(), style: const TextStyle(color: Colors.grey, fontSize: 13))),
           const SizedBox(height: 18),
 
           // Telegram channel button

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../widgets/net_image.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:just_audio/just_audio.dart';
+import '../core/theme.dart';
 import '../providers/core_providers.dart';
 import '../screens/player_screen.dart';
 
@@ -12,13 +12,14 @@ class MiniPlayer extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final handler = ref.watch(audioHandlerProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return ValueListenableBuilder<int>(
       valueListenable: handler.indexNotifier,
       builder: (context, idx, _) {
         final song = handler.currentSong;
         if (song == null) return const SizedBox.shrink();
-        return StreamBuilder<PlayerState>(
+        return StreamBuilder(
           stream: handler.playerStateStream,
           builder: (context, snapshot) {
             final playing = snapshot.data?.playing ?? false;
@@ -28,18 +29,29 @@ class MiniPlayer extends ConsumerWidget {
                 MaterialPageRoute(builder: (_) => const PlayerScreen()),
               ),
               child: Container(
-                height: 62,
-                margin: const EdgeInsets.symmetric(horizontal: 8),
-                padding: const EdgeInsets.symmetric(horizontal: 8),
+                height: 64,
+                margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 10),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).cardColor,
-                  borderRadius: BorderRadius.circular(10),
+                  gradient: isDark
+                      ? LinearGradient(
+                          colors: [AppColors.darkCard, AppColors.darkSurface],
+                        )
+                      : AppTheme.brandGradient,
+                  borderRadius: BorderRadius.circular(18),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primary.withOpacity(0.25),
+                      blurRadius: 10,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
                 ),
                 child: Row(
                   children: [
                     ClipRRect(
-                      borderRadius: BorderRadius.circular(6),
-                      child: NetImage(song.coverUrl, width: 46, height: 46, radius: 6),
+                      borderRadius: BorderRadius.circular(10),
+                      child: NetImage(song.coverUrl, width: 46, height: 46, radius: 10),
                     ),
                     const SizedBox(width: 10),
                     Expanded(
@@ -48,18 +60,26 @@ class MiniPlayer extends ConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(song.title, maxLines: 1, overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(fontWeight: FontWeight.w600)),
+                              style: TextStyle(
+                                fontWeight: FontWeight.w700,
+                                color: isDark ? Colors.white : Colors.white,
+                              )),
                           Text(song.artist, maxLines: 1, overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: isDark ? Colors.grey.shade400 : Colors.white70,
+                              )),
                         ],
                       ),
                     ),
                     IconButton(
-                      icon: Icon(playing ? Icons.pause : Icons.play_arrow),
+                      icon: Icon(playing ? Icons.pause : Icons.play_arrow,
+                          color: isDark ? AppColors.primary : Colors.white),
                       onPressed: () => playing ? handler.pause() : handler.play(),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.skip_next),
+                      icon: Icon(Icons.skip_next,
+                          color: isDark ? AppColors.primary : Colors.white),
                       onPressed: () => handler.next(),
                     ),
                   ],
