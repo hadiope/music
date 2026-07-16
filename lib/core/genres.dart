@@ -5,13 +5,12 @@ class GenreItem {
 }
 
 /// Iranian music categories with representative cover images.
-/// Images use picsum (royalty-free placeholders) — replace with your own art.
-/// Cleaned per request: removed فولک، الکترونیک، ترنس، جاز، بلوز، متال; راپ→رپ.
+/// Using loremflickr (fast CDN) seeded by genre for stable, quick loads.
 const List<GenreItem> genresList = [
-  GenreItem('پاپ', 'https://picsum.photos/seed/pop/400/400'),
-  GenreItem('رپ', 'https://picsum.photos/seed/rap/400/400'),
-  GenreItem('سنتی', 'https://picsum.photos/seed/traditional/400/400'),
-  GenreItem('هیپ‌هاپ', 'https://picsum.photos/seed/hiphop/400/400'),
-  GenreItem('راک', 'https://picsum.photos/seed/rock/400/400'),
-  GenreItem('کلاسیک', 'https://picsum.photos/seed/classical/400/400'),
+  GenreItem('پاپ', 'https://loremflickr.com/400/400/music?lock=11'),
+  GenreItem('رپ', 'https://loremflickr.com/400/400/rap?lock=12'),
+  GenreItem('سنتی', 'https://loremflickr.com/400/400/persian?lock=13'),
+  GenreItem('هیپ‌هاپ', 'https://loremflickr.com/400/400/hiphop?lock=14'),
+  GenreItem('راک', 'https://loremflickr.com/400/400/rock?lock=15'),
+  GenreItem('کلاسیک', 'https://loremflickr.com/400/400/classical?lock=16'),
 ];

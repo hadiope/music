@@ -41,12 +41,12 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
-            <!-- Deep link: open playlist directly from a shared link -->
+            <!-- Deep link: open playlist directly from shared GitHub Pages link -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW"/>
                 <category android:name="android.intent.category.DEFAULT"/>
                 <category android:name="android.intent.category.BROWSABLE"/>
-                <data android:scheme="https" android:host="thetextstory.com" android:pathPrefix="/playlist/"/>
+                <data android:scheme="https" android:host="hadiope.github.io" android:pathPrefix="/music/"/>
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.VIEW"/>

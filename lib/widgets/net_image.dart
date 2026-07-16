@@ -25,6 +25,8 @@ class NetImage extends StatelessWidget {
         height: height,
         fit: fit,
         fadeInDuration: const Duration(milliseconds: 250),
+        memCacheWidth: 400,
+        maxWidthDiskCache: 600,
         placeholder: (_, __) => Container(
           width: width,
           height: height,
