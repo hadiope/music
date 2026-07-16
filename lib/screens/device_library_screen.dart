@@ -6,6 +6,7 @@ import '../models/song.dart';
 import '../services/audio_handler.dart';
 import '../widgets/net_image.dart';
 import '../core/strings.dart';
+import '../providers/core_providers.dart';
 import 'player_screen.dart';
 
 /// Lists all audio files on the device (Samsung Music style).
