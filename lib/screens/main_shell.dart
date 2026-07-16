@@ -24,7 +24,7 @@ class _MainShellState extends ConsumerState<MainShell> {
     [Icons.home_outlined, Icons.home],
     [Icons.search_outlined, Icons.search],
     [Icons.library_music_outlined, Icons.library_music],
-    [Icons.folder_music_outlined, Icons.folder_music],
+    [Icons.folder_outlined, Icons.folder],
   ];
   final _labels = [T.home, T.search, T.library, T.myMusic];
 
