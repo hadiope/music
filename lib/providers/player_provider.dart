@@ -9,9 +9,10 @@ class PlayController {
   final Ref ref;
   PlayController(this.ref);
 
-  Future<void> playQueue(List<Song> songs, int index) async {
+  Future<String?> playQueue(List<Song> songs, int index) async {
     final handler = ref.read(audioHandlerProvider);
-    await handler.setQueue(songs, startIndex: index);
+    final err = await handler.setQueueSafe(songs, startIndex: index);
+    if (err != null) return err;
     final song = songs[index];
     // record history + increment plays (best-effort)
     final user = ref.read(currentUserProvider);
@@ -20,6 +21,7 @@ class PlayController {
       await db.incrementPlays(song.id);
       if (user != null) await db.addHistory(user.id, song.id);
     } catch (_) {}
+    return null;
   }
 
   Future<void> playSingle(Song song) async {

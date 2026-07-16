@@ -185,9 +185,16 @@ class HomeScreen extends ConsumerWidget {
                           separatorBuilder: (_, __) => const SizedBox(width: 14),
                           itemBuilder: (_, i) => SongCard(
                             song: songs[i],
-                            onTap: () {
-                              ref.read(playSongProvider).playQueue(songs, i);
-                              Navigator.push(context, MaterialPageRoute(builder: (_) => const PlayerScreen()));
+                            onTap: () async {
+                              final err = await ref.read(playSongProvider).playQueue(songs, i);
+                              if (err != null && context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('خطا در پخش: $err'), backgroundColor: Colors.red),
+                                );
+                              }
+                              if (context.mounted) {
+                                Navigator.push(context, MaterialPageRoute(builder: (_) => const PlayerScreen()));
+                              }
                             },
                           ),
                         ),
@@ -205,9 +212,16 @@ class HomeScreen extends ConsumerWidget {
                 delegate: SliverChildBuilderDelegate(
                   (context, i) => SongTile(
                     song: songs[i],
-                    onTap: () {
-                      ref.read(playSongProvider).playQueue(songs, i);
-                      Navigator.push(context, MaterialPageRoute(builder: (_) => const PlayerScreen()));
+                    onTap: () async {
+                      final err = await ref.read(playSongProvider).playQueue(songs, i);
+                      if (err != null && context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('خطا در پخش: $err'), backgroundColor: Colors.red),
+                        );
+                      }
+                      if (context.mounted) {
+                        Navigator.push(context, MaterialPageRoute(builder: (_) => const PlayerScreen()));
+                      }
                     },
                   ),
                   childCount: songs.length,

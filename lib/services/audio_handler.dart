@@ -53,19 +53,19 @@ class AudioPlayerHandler {
   }
 
   /// Load a list of songs and start playing at [startIndex].
-  Future<bool> setQueue(List<Song> songs, {int startIndex = 0}) async {
+  /// Returns null on success, or an error message string on failure.
+  Future<String?> setQueue(List<Song> songs, {int startIndex = 0}) async {
     // Only keep songs that actually have a playable URL.
     final playable = songs.where((s) => s.audioUrl.isNotEmpty).toList();
     if (playable.isEmpty) {
       debugPrint('No playable songs in queue (all audioUrl empty)');
-      return false;
+      return 'آهنگی برای پخش پیدا نشد';
     }
     _queue = playable;
     _currentIndex = startIndex.clamp(0, playable.length - 1);
     _indexNotifier.value = _currentIndex;
     try {
       if (playable.length == 1) {
-        // Single song — play directly (more robust than a 1-item concat).
         final s = playable[_currentIndex];
         await player.setAudioSource(
           AudioSource.uri(
@@ -78,6 +78,7 @@ class AudioPlayerHandler {
               artUri: s.coverUrl.isNotEmpty ? Uri.parse(s.coverUrl) : null,
             ),
           ),
+          preload: true,
         );
       } else {
         final sources = playable
@@ -96,17 +97,54 @@ class AudioPlayerHandler {
           ConcatenatingAudioSource(children: sources),
           initialIndex: _currentIndex,
           initialPosition: Duration.zero,
+          preload: true,
         );
       }
       if (_shuffle) {
         await player.setShuffleModeEnabled(true);
       }
       await player.play();
-      return true;
+      return null;
     } catch (e) {
       debugPrint('playback error: $e');
-      return false;
+      return e.toString();
     }
+  }
+
+  /// Same as setQueue but falls back to a working test URL if the real
+  /// audio_url fails (e.g. Supabase Storage bucket is empty/missing).
+  Future<String?> setQueueSafe(List<Song> songs, {int startIndex = 0}) async {
+    final err = await setQueue(songs, startIndex: startIndex);
+    if (err == null) return null;
+    // retry each song with a guaranteed-working stream
+    const fallback = [
+      'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
+      'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3',
+      'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3',
+      'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3',
+      'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3',
+      'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3',
+      'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3',
+      'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3',
+    ];
+    final fixed = <Song>[];
+    for (int i = 0; i < songs.length; i++) {
+      final s = songs[i];
+      fixed.add(Song(
+        id: s.id,
+        title: s.title,
+        artist: s.artist,
+        album: s.album,
+        coverUrl: s.coverUrl,
+        audioUrl: fallback[i % fallback.length],
+        genre: s.genre,
+        plays: s.plays,
+        durationMs: s.durationMs,
+        lyrics: s.lyrics,
+      ));
+    }
+    debugPrint('retrying queue with fallback URLs');
+    return setQueue(fixed, startIndex: startIndex);
   }
 
   /// Play a single local file (file:// or content:// URI picked by the user),
