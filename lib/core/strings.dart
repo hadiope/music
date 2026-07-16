@@ -49,6 +49,7 @@ class T {
       ? 'App installed successfully ✅\n\nTo activate songs and sign-in,\nadd your Supabase keys in\nlib/core/constants.dart\nand rebuild.'
       : 'اپ با موفقیت نصب شد ✅\n\nبرای فعال شدن آهنگ‌ها و ورود،\nباید اطلاعات Supabase را در فایل\nlib/core/constants.dart وارد کنی\nو دوباره build بگیری.';
   static String get noPlaylists => _lang == 'en' ? "You have no playlists" : 'پلی‌لیستی نداری';
+  static String get createFirstPlaylist => _lang == 'en' ? 'Create your first playlist' : 'بساز اولین پلی‌لیست';
   static String get guestPlaylistBlocked => _lang == 'en'
       ? 'You need to sign in to create playlists'
       : 'برای ساخت پلی‌لیست باید وارد حساب کاربری شوید';

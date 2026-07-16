@@ -84,7 +84,7 @@ class HomeScreen extends ConsumerWidget {
                         GestureDetector(
                           onTap: () => Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (_) => const ProfileScreen()),
+                            MaterialPageRoute(builder: (_) => ProfileScreen()),
                           ),
                           child: CircleAvatar(
                             radius: 20,
