@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Iran Seda - پلی‌لیست</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Tahoma, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .card {
+      background: rgba(255,255,255,0.08);
+      backdrop-filter: blur(20px);
+      border-radius: 24px;
+      padding: 40px 32px;
+      max-width: 420px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    }
+    .logo {
+      width: 96px; height: 96px;
+      background: linear-gradient(135deg, #1DB954, #169c46);
+      border-radius: 28px;
+      margin: 0 auto 24px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 48px;
+      box-shadow: 0 4px 20px rgba(29,185,84,0.4);
+    }
+    h1 { font-size: 26px; margin-bottom: 8px; font-weight: 700; }
+    .subtitle { color: #b3b3b3; font-size: 15px; margin-bottom: 32px; line-height: 1.6; }
+    .btn {
+      display: block; width: 100%;
+      padding: 16px; border-radius: 14px; border: none;
+      font-size: 16px; font-weight: 600; cursor: pointer;
+      margin-bottom: 12px; transition: transform 0.2s, opacity 0.2s;
+      text-decoration: none;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn-primary { background: #1DB954; color: #000; }
+    .btn-secondary { background: rgba(255,255,255,0.12); color: #fff; }
+    .playlist-name { color: #1DB954; font-weight: 700; }
+    .footer { margin-top: 24px; font-size: 12px; color: #666; }
+    .spinner {
+      width: 40px; height: 40px; border: 3px solid rgba(255,255,255,0.2);
+      border-top-color: #1DB954; border-radius: 50%;
+      animation: spin 1s linear infinite; margin: 0 auto 20px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <div class="card" id="loadingCard">
+    <div class="spinner"></div>
+    <p style="color:#b3b3b3;">در حال باز کردن پلی‌لیست...</p>
+  </div>
+
+  <div class="card hidden" id="mainCard">
+    <div class="logo">🎵</div>
+    <h1>Iran Seda</h1>
+    <p class="subtitle">پلی‌لیست «<span class="playlist-name" id="plName">اشتراکی</span>» آماده پخشه</p>
+    <a class="btn btn-primary" id="openBtn" href="#">باز کردن در برنامه 🎧</a>
+    <a class="btn btn-secondary" href="https://t.me/thetextstory">دانلود برنامه</a>
+    <p class="footer">اگر برنامه باز نشد، از کانال تلگرام دانلودش کن</p>
+  </div>
+
+  <script>
+    // Support both:
+    //   /playlist/<id>?name=...   (served via /playlist/index.html copy)
+    //   /#/playlist/<id>?name=... (hash fallback)
+    //   ?id=<id>                  (query fallback)
+    function extractPlaylistId() {
+      // 1. Path-based: /playlist/ABC123
+      const path = window.location.pathname;
+      const m = path.match(/\/playlist\/([^\/]+)/);
+      if (m) return decodeURIComponent(m[1]);
+
+      // 2. Hash-based: /#/playlist/ABC123
+      const hash = window.location.hash;
+      const hm = hash.match(/#\/playlist\/([^\/]+)/);
+      if (hm) return decodeURIComponent(hm[1]);
+
+      // 3. Query-based: /?id=ABC123
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('id')) return params.get('id');
+      if (params.get('pl')) return params.get('pl');
+      return '';
+    }
+
+    function extractName() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('name') || '';
+    }
+
+    const playlistId = extractPlaylistId();
+    const playlistName = extractName();
+
+    // Set the deep link (always use the clean scheme)
+    const deepLink = `iranseda://playlist/${playlistId}`;
+    const openBtn = document.getElementById('openBtn');
+    openBtn.href = deepLink;
+
+    // Show main card
+    document.getElementById('loadingCard').classList.add('hidden');
+    document.getElementById('mainCard').classList.remove('hidden');
+    if (playlistName) {
+      document.getElementById('plName').textContent = playlistName;
+    }
+
+    // Auto-try to open the app after a short delay
+    let appOpened = false;
+    const tryOpenApp = () => {
+      if (appOpened) return;
+      appOpened = true;
+      window.location.href = deepLink;
+    };
+
+    setTimeout(tryOpenApp, 800);
+
+    openBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      tryOpenApp();
+      setTimeout(() => {
+        if (!document.hidden) {
+          alert('برنامه پیدا نشد. از کانال تلگرام دانلودش کن 📱');
+        }
+      }, 2000);
+    });
+  </script>
+</body>
+</html>
+<!-- deploy trigger 1784193469 -->
