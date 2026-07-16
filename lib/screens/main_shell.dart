@@ -24,7 +24,7 @@ class _MainShellState extends ConsumerState<MainShell> {
     [Icons.library_music_outlined, Icons.library_music],
     [Icons.person_outline, Icons.person],
   ];
-  final _labels = const [T.home, T.search, T.library, T.profile];
+  final _labels = [T.home, T.search, T.library, T.profile];
 
   @override
   Widget build(BuildContext context) {

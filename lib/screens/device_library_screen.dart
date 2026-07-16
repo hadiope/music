@@ -125,28 +125,35 @@ class _DeviceLibraryScreenState extends ConsumerState<DeviceLibraryScreen> {
           ),
           const Divider(height: 1),
           Expanded(
-                      itemCount: _songs.length,
-                      separatorBuilder: (_, __) => const Divider(height: 1),
-                      itemBuilder: (_, i) {
-                        final s = _songs[i];
-                        return ListTile(
-                          leading: const Icon(Icons.music_note, color: Color(0xFF1DB954)),
-                          title: Text(s.title, maxLines: 1, overflow: TextOverflow.ellipsis),
-                          subtitle: Text(s.artist),
-                          onTap: () async {
-                            final handler = ref.read(audioHandlerProvider);
-                            final ok = await handler.playLocalFile(s.audioUrl,
-                                title: s.title, artist: s.artist);
-                            if (ok && context.mounted) {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: (_) => const PlayerScreen()),
+            child: _loading
+                ? const Center(child: CircularProgressIndicator())
+                : _error != null
+                    ? Center(child: Text(_error!))
+                    : _songs.isEmpty
+                        ? const Center(child: Text('آهنگی در حافظه پیدا نشد'))
+                        : ListView.separated(
+                            itemCount: _songs.length,
+                            separatorBuilder: (_, __) => const Divider(height: 1),
+                            itemBuilder: (_, i) {
+                              final s = _songs[i];
+                              return ListTile(
+                                leading: const Icon(Icons.music_note, color: Color(0xFF1DB954)),
+                                title: Text(s.title, maxLines: 1, overflow: TextOverflow.ellipsis),
+                                subtitle: Text(s.artist),
+                                onTap: () async {
+                                  final handler = ref.read(audioHandlerProvider);
+                                  final ok = await handler.playLocalFile(s.audioUrl,
+                                      title: s.title, artist: s.artist);
+                                  if (ok && context.mounted) {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(builder: (_) => const PlayerScreen()),
+                                    );
+                                  }
+                                },
                               );
-                            }
-                          },
-                        );
-                      },
-                    ),
+                            },
+                          ),
           ),
         ],
       ),
