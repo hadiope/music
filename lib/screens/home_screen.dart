@@ -14,6 +14,7 @@ import '../widgets/ui_kit.dart';
 import '../core/theme.dart';
 import 'player_screen.dart';
 import 'genre_screen.dart';
+import 'profile_screen.dart';
 import '../widgets/local_banner.dart';
 
 class HomeScreen extends ConsumerWidget {
