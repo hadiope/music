@@ -88,7 +88,7 @@ class _PlaylistDetailScreenState extends ConsumerState<PlaylistDetailScreen> {
               IconButton(
                 onPressed: () => _sharePlaylist(context),
                 icon: const Icon(Icons.share),
-                tooltip: T.lang == 'en' ? 'Share' : 'اشتراک‌گذاری',
+                tooltip: T.sharePlaylist,
               ),
             ],
           ),
@@ -152,7 +152,7 @@ class _PlaylistDetailScreenState extends ConsumerState<PlaylistDetailScreen> {
                               ref.read(audioHandlerProvider).playLocalFile(s.path, title: s.name);
                               if (mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text(T.lang == 'en' ? 'Playing: ${s.name}' : 'در حال پخش: ${s.name}')),
+                                  SnackBar(content: Text(T.playingPrefix + s.name)),
                                 );
                               }
                             },

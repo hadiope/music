@@ -7,6 +7,7 @@ import '../services/audio_handler.dart';
 import '../widgets/net_image.dart';
 import '../core/strings.dart';
 import '../providers/core_providers.dart';
+import '../providers/settings_provider.dart';
 import 'player_screen.dart';
 
 /// Lists all audio files on the device (Samsung Music style).
@@ -37,7 +38,9 @@ class _DeviceLibraryScreenState extends ConsumerState<DeviceLibraryScreen> {
         if (!legacy.isGranted) {
           setState(() {
             _loading = false;
-            _error = 'دسترسی به حافظه داده نشد';
+            _error = T.lang == 'en'
+                ? 'Storage permission not granted'
+                : 'دسترسی به حافظه داده نشد';
           });
           return;
         }
@@ -94,9 +97,10 @@ class _DeviceLibraryScreenState extends ConsumerState<DeviceLibraryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    ref.watch(tProvider);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('موزیک‌های من'),
+        title: Text(T.myMusic),
         actions: [
           IconButton(icon: const Icon(Icons.refresh), onPressed: _load),
         ],
@@ -106,13 +110,15 @@ class _DeviceLibraryScreenState extends ConsumerState<DeviceLibraryScreen> {
           // Offline test song (always works — bundled in the app)
           ListTile(
             leading: const Icon(Icons.audiotrack, color: Color(0xFF1DB954)),
-            title: const Text('پخش تست (آفلاین)'),
-            subtitle: const Text('اگه این پخش شد، مشکل از فیلتر بودن آهنگ‌هاست'),
+            title: Text(T.lang == 'en' ? 'Offline test playback' : 'پخش تست (آفلاین)'),
+            subtitle: Text(T.lang == 'en'
+                ? 'If this plays, the issue is the songs being filtered'
+                : 'اگه این پخش شد، مشکل از فیلتر بودن آهنگ‌هاست'),
             onTap: () async {
               final handler = ref.read(audioHandlerProvider);
               await handler.playLocalFile(
                 'assets/audio/sample.mp3',
-                title: 'تست آفلاین',
+                title: T.lang == 'en' ? 'Offline test' : 'تست آفلاین',
                 artist: 'Iran Seda',
               );
               if (context.mounted) {
@@ -130,7 +136,7 @@ class _DeviceLibraryScreenState extends ConsumerState<DeviceLibraryScreen> {
                 : _error != null
                     ? Center(child: Text(_error!))
                     : _songs.isEmpty
-                        ? const Center(child: Text('آهنگی در حافظه پیدا نشد'))
+                        ? Center(child: Text(T.noDeviceSongs))
                         : ListView.separated(
                             itemCount: _songs.length,
                             separatorBuilder: (_, __) => const Divider(height: 1),

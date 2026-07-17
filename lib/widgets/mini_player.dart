@@ -13,6 +13,7 @@ class MiniPlayer extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final handler = ref.watch(audioHandlerProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return ValueListenableBuilder<int>(
       valueListenable: handler.indexNotifier,
@@ -33,7 +34,7 @@ class MiniPlayer extends ConsumerWidget {
                 margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 padding: const EdgeInsets.symmetric(horizontal: 8),
                 decoration: BoxDecoration(
-                  color: AppColors.darkElevated,
+                  color: isDark ? AppColors.darkElevated : AppColors.lightCard,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
@@ -51,25 +52,27 @@ class MiniPlayer extends ConsumerWidget {
                           Text(song.title,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
+                              style: TextStyle(
                                   fontWeight: FontWeight.w600,
                                   fontSize: 14,
-                                  color: Colors.white)),
+                                  color: isDark ? Colors.white : Colors.black87)),
                           Text(song.artist,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                  fontSize: 12, color: AppColors.greyText)),
+                              style: TextStyle(
+                                  fontSize: 12,
+                                  color: isDark ? AppColors.greyText : Colors.grey.shade600)),
                         ],
                       ),
                     ),
                     IconButton(
                       icon: Icon(playing ? Icons.pause : Icons.play_arrow,
-                          color: Colors.white, size: 30),
+                          color: isDark ? Colors.white : Colors.black87, size: 30),
                       onPressed: () => playing ? handler.pause() : handler.play(),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.skip_next, color: Colors.white, size: 26),
+                      icon: Icon(Icons.skip_next,
+                          color: isDark ? Colors.white : Colors.black87, size: 26),
                       onPressed: () => handler.next(),
                     ),
                   ],

@@ -9,11 +9,14 @@ final supabaseProvider = Provider<SupabaseClient>((ref) => Supabase.instance.cli
 /// Database service.
 final databaseProvider = Provider<DatabaseService>((ref) => DatabaseService());
 
-/// Single global audio handler.
+/// Single global audio handler — lazy singleton so it is always initialized
+/// exactly once and never throws LateInitializationError when a screen reads
+/// it before playback has started.
+final AudioPlayerHandler _sharedHandler = AudioPlayerHandler();
+
 final audioHandlerProvider = Provider<AudioPlayerHandler>((ref) {
-  final h = AudioPlayerHandler();
-  ref.onDispose(() => h.dispose());
-  return h;
+  ref.onDispose(() {}); // keep alive for the app lifetime (music keeps playing)
+  return _sharedHandler;
 });
 
 /// Auth state stream.

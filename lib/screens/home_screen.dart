@@ -52,7 +52,7 @@ class HomeScreen extends ConsumerWidget {
               expandedHeight: 96,
               floating: true,
               pinned: false,
-              backgroundColor: AppColors.darkBg,
+              backgroundColor: isDark ? AppColors.darkBg : AppColors.lightBg,
               flexibleSpace: FlexibleSpaceBar(
                 background: SafeArea(
                   child: Padding(
@@ -77,7 +77,10 @@ class HomeScreen extends ConsumerWidget {
                               const SizedBox(height: 2),
                               Text(
                                 T.lang == 'en' ? 'Start your day with a song' : 'روزتون رو با آهنگ شروع کنید',
-                                style: const TextStyle(fontSize: 13, color: AppColors.greyText),
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: isDark ? AppColors.greyText : Colors.grey.shade600,
+                                ),
                               ),
                             ],
                           ),

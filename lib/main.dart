@@ -18,13 +18,17 @@ import 'screens/playlist_detail_screen.dart';
 import 'models/playlist.dart';
 
 /// Parses a deep link (https://hadiope.github.io/music/#/playlist/<id>
-/// or shad://playlist/<id>) into a playlist id, or null.
+/// or shad://playlist/<id> or /playlist/<id>) into a playlist id, or null.
 String? _parsePlaylistId(String? link) {
   if (link == null || link.isEmpty) return null;
-  // hash route from github pages
+  // hash route from github pages: .../#/playlist/<id>
   final hash = Uri.parse(link);
   if (hash.fragment.startsWith('/playlist/')) {
     return hash.fragment.split('/')[2];
+  }
+  // in-app route (onGenerateRoute name): /playlist/<id>
+  if (link.startsWith('/playlist/')) {
+    return link.split('/')[2];
   }
   // scheme host route
   final uri = Uri.parse(link);
@@ -82,6 +86,8 @@ class HarmonyApp extends ConsumerStatefulWidget {
 }
 
 class _HarmonyAppState extends ConsumerState<HarmonyApp> with WidgetsBindingObserver {
+  String? _initialLink;
+
   @override
   void initState() {
     super.initState();
@@ -94,7 +100,10 @@ class _HarmonyAppState extends ConsumerState<HarmonyApp> with WidgetsBindingObse
     // Handle link that opened the app (cold start)
     try {
       final initial = await appLinks.getInitialLink();
-      if (initial != null) _openPlaylistFromLink(initial.toString());
+      if (initial != null) {
+        _initialLink = initial.toString();
+        _openPlaylistFromLink(_initialLink);
+      }
     } catch (e) {
       debugPrint('getInitialLink failed: $e');
     }
@@ -138,6 +147,9 @@ class _HarmonyAppState extends ConsumerState<HarmonyApp> with WidgetsBindingObse
     final locale = ref.watch(localeProvider);
     T.setLocale(locale.languageCode);
 
+    // If the app was opened from a playlist share link, go straight there.
+    final initialPlaylistId = _parsePlaylistId(_initialLink);
+
     return MaterialApp(
       title: 'Iran Seda',
       debugShowCheckedModeBanner: false,
@@ -167,6 +179,9 @@ class _HarmonyAppState extends ConsumerState<HarmonyApp> with WidgetsBindingObse
         }
         return null;
       },
+      // When opened via a playlist link, skip the splash/login and land
+      // directly on the playlist detail screen.
+      initialRoute: initialPlaylistId != null ? '/playlist/$initialPlaylistId' : null,
       home: widget.supabaseReady ? const SplashScreen() : const _SetupNeededScreen(),
     );
   }

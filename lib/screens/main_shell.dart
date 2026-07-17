@@ -40,7 +40,13 @@ class _MainShellState extends ConsumerState<MainShell> {
           const MiniPlayer(),
           Container(
             decoration: BoxDecoration(
-              color: AppColors.darkSurface,
+              color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+              border: Border(
+                top: BorderSide(
+                  color: isDark ? Colors.black12 : Colors.black12,
+                  width: 0.5,
+                ),
+              ),
             ),
             child: SafeArea(
               child: Padding(
