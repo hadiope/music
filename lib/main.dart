@@ -4,7 +4,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:just_audio_background/just_audio_background.dart';
 import 'package:app_links/app_links.dart';
 import 'core/constants.dart';
 import 'core/theme.dart';
@@ -46,17 +45,9 @@ String? _parsePlaylistId(String? link) {
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Background audio (notification + lock screen controls)
-  try {
-    await JustAudioBackground.init(
-      androidNotificationChannelId: 'ir.iranseda.hadi.channel.audio',
-      androidNotificationChannelName: 'Iran Seda',
-      androidNotificationOngoing: true,
-      androidNotificationIcon: 'mipmap/ic_launcher',
-    );
-  } catch (e) {
-    debugPrint('JustAudioBackground init failed: $e');
-  }
+  // NOTE: just_audio_background removed (caused LateInitializationError on some
+  // devices). Background notification controls will be re-added later with a
+  // stable approach. Core playback uses just_audio directly for now.
 
   // Supabase — guarded so the app still opens if keys are not set yet.
   bool supabaseReady = false;

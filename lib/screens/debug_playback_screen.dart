@@ -46,11 +46,11 @@ class _DebugPlaybackScreenState extends ConsumerState<DebugPlaybackScreen> {
               onPressed: _busy
                   ? null
                   : () => _run('asset', () async {
-                        final ok = await handler.playLocalFile(
+                        final err = await handler.playLocalFile(
                           'assets/audio/sample.mp3',
                           title: 'Offline test',
                         );
-                        if (!ok) throw Exception('playLocalFile returned false');
+                        if (err != null) throw Exception(err);
                       }),
               child: const Text('Test 1: Play bundled asset (sample.mp3)'),
             ),

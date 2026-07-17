@@ -106,12 +106,12 @@ class _DeviceSongsScreenState extends ConsumerState<DeviceSongsScreen> {
           trailing: const Icon(Icons.play_arrow),
           onTap: () async {
             final handler = ref.read(audioHandlerProvider);
-            final ok = await handler.playLocalFile(f.path, title: _name(f));
-            if (ok && mounted) {
+            final err = await handler.playLocalFile(f.path, title: _name(f));
+            if (err == null && mounted) {
               Navigator.push(context, MaterialPageRoute(builder: (_) => const PlayerScreen()));
             } else if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(T.couldNotPlay)),
+                SnackBar(content: Text('خطا: $err')),
               );
             }
           },

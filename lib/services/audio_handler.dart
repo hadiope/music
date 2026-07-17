@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'package:just_audio/just_audio.dart';
-import 'package:just_audio_background/just_audio_background.dart';
 import '../models/song.dart';
 import '../core/strings.dart';
 import 'package:flutter/foundation.dart';
@@ -175,7 +174,8 @@ class AudioPlayerHandler {
   /// Play a single local file (file:// or content:// URI picked by the user),
   /// an app-bundled asset path (e.g. 'assets/audio/sample.mp3'),
   /// or a raw filesystem path (/storage/emulated/0/...).
-  Future<bool> playLocalFile(String path,
+  /// Returns null on success, or an error message string on failure.
+  Future<String?> playLocalFile(String path,
       {String? title, String? artist}) async {
     title ??= T.localSongTitleDefault;
     artist ??= T.localSongArtistDefault;
@@ -194,12 +194,17 @@ class AudioPlayerHandler {
     _currentIndex = 0;
     _indexNotifier.value = 0;
     try {
-      await player.setAudioSource(_buildSource(song));
+      debugPrint('playLocalFile: building source for $path');
+      final src = _buildSource(song);
+      debugPrint('playLocalFile: setAudioSource...');
+      await player.setAudioSource(src);
+      debugPrint('playLocalFile: play()...');
       await player.play();
-      return true;
+      debugPrint('playLocalFile: success');
+      return null;
     } catch (e) {
       debugPrint('local playback error: $e');
-      return false;
+      return e.toString();
     }
   }
 

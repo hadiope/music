@@ -143,17 +143,18 @@ class _DeviceLibraryScreenState extends ConsumerState<DeviceLibraryScreen> {
                 : 'اگه این پخش شد، مشکل از فیلتر بودن آهنگ‌هاست'),
             onTap: () async {
               final handler = ref.read(audioHandlerProvider);
-              final ok = await handler.playLocalFile(
+              final err = await handler.playLocalFile(
                 'assets/audio/sample.mp3',
                 title: T.lang == 'en' ? 'Offline test' : 'تست آفلاین',
                 artist: 'Iran Seda',
               );
+              final ok = err == null;
               if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(ok
                         ? (T.lang == 'en' ? 'Playing offline test ✓' : 'در حال پخش تست آفلاین ✓')
-                        : (T.lang == 'en' ? 'Offline test FAILED — check logs' : 'تست آفلاین شکست خورد — لاگ را ببین')),
+                        : (T.lang == 'en' ? 'Offline test FAILED: $err' : 'تست آفلاین شکست خورد: $err')),
                     backgroundColor: ok ? Colors.green : Colors.red,
                   ),
                 );
@@ -221,12 +222,16 @@ class _DeviceLibraryScreenState extends ConsumerState<DeviceLibraryScreen> {
                                 subtitle: Text(s.artist),
                                 onTap: () async {
                                   final handler = ref.read(audioHandlerProvider);
-                                  final ok = await handler.playLocalFile(s.audioUrl,
+                                  final err = await handler.playLocalFile(s.audioUrl,
                                       title: s.title, artist: s.artist);
-                                  if (ok && context.mounted) {
+                                  if (err == null && context.mounted) {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(builder: (_) => const PlayerScreen()),
+                                    );
+                                  } else if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text('خطا: $err'), backgroundColor: Colors.red),
                                     );
                                   }
                                 },
