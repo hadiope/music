@@ -47,6 +47,9 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
               final playing = snap.data?.playing ?? false;
               final liked = likes.contains(song.id);
               final queueLen = handler.queue.length;
+              // RTL-aware: in RTL, swiping left-to-right (positive velocity)
+              // means "previous" (going back), right-to-left means "next".
+              final isRtl = Directionality.of(context) == TextDirection.rtl;
 
               return Padding(
                 padding: const EdgeInsets.all(24),
@@ -54,9 +57,6 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
                   children: [
                     const Spacer(),
                     // Cover art with swipe-to-change-track
-                    // RTL-aware: in RTL, swiping left-to-right (positive velocity)
-                    // means "previous" (going back), right-to-left means "next".
-                    final isRtl = Directionality.of(context) == TextDirection.rtl;
                     Dismissible(
                       key: ValueKey(song.id),
                       direction: DismissDirection.horizontal,
