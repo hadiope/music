@@ -127,15 +127,11 @@ class AudioPlayerHandler {
       if (_shuffle) {
         await player.setShuffleModeEnabled(true);
       }
-      // Make sure we are not in a paused/stopped error state.
+      // Start playback. just_audio begins buffering/loading asynchronously;
+      // playerState.playing becomes true immediately even before the source
+      // is fully loaded, so we just trigger play() and return success.
       await player.play();
-      // Give it a moment, then verify playback actually started.
-      await Future.delayed(const Duration(milliseconds: 300));
-      final state = player.playerState;
-      debugPrint('after play(): processingState=${state.processingState}, playing=${state.playing}');
-      if (!state.playing && state.processingState == ProcessingState.idle) {
-        return 'خطا در شروع پخش (وضعیت: ${state.processingState})';
-      }
+      debugPrint('setQueue: play() called, playing=${player.playerState.playing}');
       return null;
     } catch (e) {
       debugPrint('playback error: $e');

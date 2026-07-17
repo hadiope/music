@@ -15,6 +15,7 @@ import '../core/theme.dart';
 import 'player_screen.dart';
 import 'genre_screen.dart';
 import 'profile_screen.dart';
+import 'debug_playback_screen.dart';
 import '../widgets/local_banner.dart';
 
 class HomeScreen extends ConsumerWidget {
@@ -94,6 +95,21 @@ class HomeScreen extends ConsumerWidget {
                             radius: 20,
                             backgroundColor: AppColors.darkElevated,
                             child: const Icon(Icons.person_outline, color: Colors.white, size: 22),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        GestureDetector(
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const DebugPlaybackScreen()),
+                          ),
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.orange,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Icon(Icons.bug_report, color: Colors.white, size: 20),
                           ),
                         ),
                       ],
