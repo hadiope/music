@@ -9,10 +9,15 @@ final supabaseProvider = Provider<SupabaseClient>((ref) => Supabase.instance.cli
 /// Database service.
 final databaseProvider = Provider<DatabaseService>((ref) => DatabaseService());
 
-/// Single global audio handler — lazy singleton so it is always initialized
-/// exactly once and never throws LateInitializationError when a screen reads
-/// it before playback has started.
-final AudioPlayerHandler _sharedHandler = AudioPlayerHandler();
+/// Single global audio handler — lazy singleton so it is created on first
+/// access (after JustAudioBackground.init has run in main()) and never throws
+/// LateInitializationError when a screen reads it before playback starts.
+AudioPlayerHandler get _sharedHandler {
+  _handlerInstance ??= AudioPlayerHandler();
+  return _handlerInstance!;
+}
+
+AudioPlayerHandler? _handlerInstance;
 
 final audioHandlerProvider = Provider<AudioPlayerHandler>((ref) {
   ref.onDispose(() {}); // keep alive for the app lifetime (music keeps playing)
