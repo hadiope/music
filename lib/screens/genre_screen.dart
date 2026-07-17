@@ -53,7 +53,7 @@ class GenreScreen extends ConsumerWidget {
           ),
           songsAsync.when(
             data: (songs) => songs.isEmpty
-                ? const SliverFillRemaining(
+                ? SliverFillRemaining(
                     child: Center(child: Text(T.noSongsInGenre)),
                   )
                 : SliverList(
