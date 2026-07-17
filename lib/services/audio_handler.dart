@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_background/just_audio_background.dart';
 import '../models/song.dart';
@@ -50,6 +51,50 @@ class AudioPlayerHandler {
       _shuffle = on;
       _shuffleNotifier.value = on;
     });
+    player.playbackEventStream.listen((event) {
+      // Surface real errors in the log so we can diagnose playback issues.
+      if (event.processingState == ProcessingState.completed) {
+        debugPrint('playback completed');
+      }
+    });
+    // Catch load/play errors globally so the UI can show what went wrong.
+    player.playerStateStream.listen((state) {
+      if (state.processingState == ProcessingState.idle && state.playing) {
+        debugPrint('WARNING: player is playing but idle (possible load failure)');
+      }
+    });
+  }
+
+  /// Builds the right AudioSource for a URL (http(s), file://, content://, or asset).
+  AudioSource _buildSource(Song s) {
+    final url = s.audioUrl;
+    final tag = MediaItem(
+      id: s.id,
+      title: s.title,
+      artist: s.artist,
+      album: s.album ?? '',
+      artUri: s.coverUrl.isNotEmpty ? Uri.parse(s.coverUrl) : null,
+    );
+
+    // Local file on disk (file:// or raw path)
+    if (url.startsWith('file://') || url.startsWith('/')) {
+      final path = url.startsWith('file://') ? url.substring(7) : url;
+      debugPrint('building AudioSource.file for: $path');
+      return AudioSource.file(path, tag: tag);
+    }
+    // content:// URI (scoped storage / media store)
+    if (url.startsWith('content://')) {
+      debugPrint('building AudioSource.uri for content: $url');
+      return AudioSource.uri(Uri.parse(url), tag: tag);
+    }
+    // asset path
+    if (url.startsWith('assets/')) {
+      debugPrint('building AudioSource.asset for: $url');
+      return AudioSource.asset(url, tag: tag);
+    }
+    // default: http(s) or any other URI
+    debugPrint('building AudioSource.uri for: $url');
+    return AudioSource.uri(Uri.parse(url), tag: tag);
   }
 
   /// Load a list of songs and start playing at [startIndex].
@@ -67,32 +112,11 @@ class AudioPlayerHandler {
     try {
       if (playable.length == 1) {
         final s = playable[_currentIndex];
-        await player.setAudioSource(
-          AudioSource.uri(
-            Uri.parse(s.audioUrl),
-            tag: MediaItem(
-              id: s.id,
-              title: s.title,
-              artist: s.artist,
-              album: s.album ?? '',
-              artUri: s.coverUrl.isNotEmpty ? Uri.parse(s.coverUrl) : null,
-            ),
-          ),
-          preload: true,
-        );
+        debugPrint('setQueue: single -> ${s.audioUrl}');
+        await player.setAudioSource(_buildSource(s), preload: true);
       } else {
-        final sources = playable
-            .map((s) => AudioSource.uri(
-                  Uri.parse(s.audioUrl),
-                  tag: MediaItem(
-                    id: s.id,
-                    title: s.title,
-                    artist: s.artist,
-                    album: s.album ?? '',
-                    artUri: s.coverUrl.isNotEmpty ? Uri.parse(s.coverUrl) : null,
-                  ),
-                ))
-            .toList();
+        final sources = playable.map(_buildSource).toList();
+        debugPrint('setQueue: ${sources.length} tracks');
         await player.setAudioSource(
           ConcatenatingAudioSource(children: sources),
           initialIndex: _currentIndex,
@@ -103,7 +127,15 @@ class AudioPlayerHandler {
       if (_shuffle) {
         await player.setShuffleModeEnabled(true);
       }
+      // Make sure we are not in a paused/stopped error state.
       await player.play();
+      // Give it a moment, then verify playback actually started.
+      await Future.delayed(const Duration(milliseconds: 300));
+      final state = player.playerState;
+      debugPrint('after play(): processingState=${state.processingState}, playing=${state.playing}');
+      if (!state.playing && state.processingState == ProcessingState.idle) {
+        return 'خطا در شروع پخش (وضعیت: ${state.processingState})';
+      }
       return null;
     } catch (e) {
       debugPrint('playback error: $e');
@@ -123,9 +155,6 @@ class AudioPlayerHandler {
       'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3',
       'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3',
       'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3',
-      'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3',
-      'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3',
-      'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3',
     ];
     final fixed = <Song>[];
     for (int i = 0; i < songs.length; i++) {
@@ -148,22 +177,18 @@ class AudioPlayerHandler {
   }
 
   /// Play a single local file (file:// or content:// URI picked by the user),
-  /// or an app-bundled asset path (e.g. 'assets/audio/sample.mp3').
+  /// an app-bundled asset path (e.g. 'assets/audio/sample.mp3'),
+  /// or a raw filesystem path (/storage/emulated/0/...).
   Future<bool> playLocalFile(String path,
       {String? title, String? artist}) async {
     title ??= T.localSongTitleDefault;
     artist ??= T.localSongArtistDefault;
     final isAsset = path.startsWith('assets/');
-    final uri = (path.startsWith('http') ||
-            path.startsWith('file://') ||
-            path.startsWith('content://'))
-        ? path
-        : (isAsset ? path : 'file://$path');
     final song = Song(
       id: 'local_${path.hashCode}',
       title: title,
       artist: artist,
-      audioUrl: uri,
+      audioUrl: path,
       coverUrl: '',
       genre: '',
       album: '',
@@ -173,14 +198,7 @@ class AudioPlayerHandler {
     _currentIndex = 0;
     _indexNotifier.value = 0;
     try {
-      final source = isAsset
-          ? AudioSource.asset(uri,
-              tag: MediaItem(id: song.id, title: song.title, artist: song.artist))
-          : AudioSource.uri(
-              Uri.parse(uri),
-              tag: MediaItem(id: song.id, title: song.title, artist: song.artist),
-            );
-      await player.setAudioSource(source);
+      await player.setAudioSource(_buildSource(song));
       await player.play();
       return true;
     } catch (e) {

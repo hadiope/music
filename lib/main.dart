@@ -52,6 +52,7 @@ Future<void> main() async {
       androidNotificationChannelId: 'ir.iranseda.hadi.channel.audio',
       androidNotificationChannelName: 'Iran Seda',
       androidNotificationOngoing: true,
+      androidNotificationIcon: 'mipmap/ic_launcher',
     );
   } catch (e) {
     debugPrint('JustAudioBackground init failed: $e');

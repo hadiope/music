@@ -143,16 +143,62 @@ class _DeviceLibraryScreenState extends ConsumerState<DeviceLibraryScreen> {
                 : 'اگه این پخش شد، مشکل از فیلتر بودن آهنگ‌هاست'),
             onTap: () async {
               final handler = ref.read(audioHandlerProvider);
-              await handler.playLocalFile(
+              final ok = await handler.playLocalFile(
                 'assets/audio/sample.mp3',
                 title: T.lang == 'en' ? 'Offline test' : 'تست آفلاین',
                 artist: 'Iran Seda',
               );
               if (context.mounted) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const PlayerScreen()),
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(ok
+                        ? (T.lang == 'en' ? 'Playing offline test ✓' : 'در حال پخش تست آفلاین ✓')
+                        : (T.lang == 'en' ? 'Offline test FAILED — check logs' : 'تست آفلاین شکست خورد — لاگ را ببین')),
+                    backgroundColor: ok ? Colors.green : Colors.red,
+                  ),
                 );
+                if (ok) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const PlayerScreen()),
+                  );
+                }
+              }
+            },
+          ),
+          // Online test (SoundHelix) — checks if network streaming works at all
+          ListTile(
+            leading: const Icon(Icons.cloud, color: Color(0xFF1DB954)),
+            title: Text(T.lang == 'en' ? 'Online test playback' : 'پخش تست (آنلاین)'),
+            subtitle: Text(T.lang == 'en'
+                ? 'Streams a public test MP3 to isolate network issues'
+                : 'یه MP3 عمومی پخش می‌کنه تا مشکل شبکه مشخص شه'),
+            onTap: () async {
+              final handler = ref.read(audioHandlerProvider);
+              final err = await handler.setQueueSafe([
+                Song(
+                  id: 'test_online',
+                  title: 'SoundHelix Test',
+                  artist: 'Test',
+                  audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
+                  coverUrl: '',
+                )
+              ], startIndex: 0);
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(err == null
+                        ? (T.lang == 'en' ? 'Playing online test ✓' : 'در حال پخش تست آنلاین ✓')
+                        : (T.lang == 'en' ? 'Online test FAILED: $err' : 'تست آنلاین شکست خورد: $err')),
+                    backgroundColor: err == null ? Colors.green : Colors.red,
+                  ),
+                );
+                if (err == null) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const PlayerScreen()),
+                  );
+                }
               }
             },
           ),
