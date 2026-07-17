@@ -67,33 +67,26 @@ class AudioPlayerHandler {
   /// Builds the right AudioSource for a URL (http(s), file://, content://, or asset).
   AudioSource _buildSource(Song s) {
     final url = s.audioUrl;
-    final tag = MediaItem(
-      id: s.id,
-      title: s.title,
-      artist: s.artist,
-      album: s.album ?? '',
-      artUri: s.coverUrl.isNotEmpty ? Uri.parse(s.coverUrl) : null,
-    );
 
     // Local file on disk (file:// or raw path)
     if (url.startsWith('file://') || url.startsWith('/')) {
       final path = url.startsWith('file://') ? url.substring(7) : url;
       debugPrint('building AudioSource.file for: $path');
-      return AudioSource.file(path, tag: tag);
+      return AudioSource.file(path);
     }
     // content:// URI (scoped storage / media store)
     if (url.startsWith('content://')) {
       debugPrint('building AudioSource.uri for content: $url');
-      return AudioSource.uri(Uri.parse(url), tag: tag);
+      return AudioSource.uri(Uri.parse(url));
     }
     // asset path
     if (url.startsWith('assets/')) {
       debugPrint('building AudioSource.asset for: $url');
-      return AudioSource.asset(url, tag: tag);
+      return AudioSource.asset(url);
     }
     // default: http(s) or any other URI
     debugPrint('building AudioSource.uri for: $url');
-    return AudioSource.uri(Uri.parse(url), tag: tag);
+    return AudioSource.uri(Uri.parse(url));
   }
 
   /// Load a list of songs and start playing at [startIndex].
