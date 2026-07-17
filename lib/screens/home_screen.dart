@@ -82,6 +82,7 @@ class HomeScreen extends ConsumerWidget {
                                   color: isDark ? AppColors.greyText : Colors.grey.shade600,
                                 ),
                               ),
+                            ],
                           ),
                         ),
                         GestureDetector(
