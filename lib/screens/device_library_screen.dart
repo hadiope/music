@@ -52,7 +52,34 @@ class _DeviceLibraryScreenState extends ConsumerState<DeviceLibraryScreen> {
         '/storage/emulated/0/DCIM',
         '/storage/emulated/0/Audio',
         '/storage/emulated/0/Sounds',
+        '/storage/emulated/0/Recordings',
+        // Common SD card mount points (external volumes)
+        '/storage/sdcard1',
+        '/mnt/sdcard/ext_sd',
+        '/mnt/extsd',
+        '/storage/extSdCard',
       ];
+
+      // Auto-detect mounted SD cards under /storage/<uuid>/
+      try {
+        final storageDir = Directory('/storage');
+        if (await storageDir.exists()) {
+          await for (final e in storageDir.list()) {
+            if (e is Directory) {
+              final name = e.path.split('/').last;
+              // skip the emulated (internal) volume
+              if (name == 'emulated' || name == 'self') continue;
+              // UUID-style mounts (e.g. 1234-5678) are external SD cards
+              if (RegExp(r'^\w{4}-\w{4}$').hasMatch(name)) {
+                roots.add('${e.path}/Music');
+                roots.add(e.path);
+              }
+            }
+          }
+        }
+      } catch (_) {
+        // ignore — we still scan the fixed roots above
+      }
 
       final found = <Song>[];
       for (final root in roots) {

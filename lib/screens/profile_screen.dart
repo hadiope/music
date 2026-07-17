@@ -119,10 +119,21 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     }
 
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+          tooltip: T.lang == 'en' ? 'Back' : 'بازگشت',
+        ),
+        title: Text(T.profileSettings,
+            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+      ),
       body: ListView(
         children: [
           Container(
-            padding: const EdgeInsets.only(top: 40, bottom: 24),
+            padding: const EdgeInsets.only(top: 8, bottom: 24),
             decoration: BoxDecoration(
               gradient: AppTheme.brandGradient,
               borderRadius: const BorderRadius.only(

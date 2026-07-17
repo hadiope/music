@@ -54,14 +54,18 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
                   children: [
                     const Spacer(),
                     // Cover art with swipe-to-change-track
+                    // RTL-aware: in RTL, swiping left-to-right (positive velocity)
+                    // means "previous" (going back), right-to-left means "next".
+                    final isRtl = Directionality.of(context) == TextDirection.rtl;
                     Dismissible(
                       key: ValueKey(song.id),
                       direction: DismissDirection.horizontal,
                       onDismissed: (direction) {
+                        // In RTL, startToEnd visually means "back/previous".
                         if (direction == DismissDirection.startToEnd) {
-                          handler.previous();
+                          isRtl ? handler.previous() : handler.next();
                         } else {
-                          handler.next();
+                          isRtl ? handler.next() : handler.previous();
                         }
                       },
                       background: const Icon(Icons.skip_previous, size: 48, color: Color(0xFF1DB954)),
@@ -69,10 +73,14 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
                       child: GestureDetector(
                         onHorizontalDragEnd: (details) {
                           if (details.primaryVelocity == null) return;
-                          if (details.primaryVelocity! < 0) {
-                            handler.previous();
-                          } else if (details.primaryVelocity! > 0) {
-                            handler.next();
+                          final v = details.primaryVelocity!;
+                          // RTL: positive velocity (finger moves LTR) = previous
+                          if (isRtl) {
+                            if (v > 0) handler.previous();
+                            else if (v < 0) handler.next();
+                          } else {
+                            if (v < 0) handler.previous();
+                            else if (v > 0) handler.next();
                           }
                         },
                         child: Stack(
@@ -80,7 +88,10 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
                           children: [
                             ClipRRect(
                               borderRadius: BorderRadius.circular(8),
-                              child: NetImage(song.coverUrl, width: 320, height: 320, radius: 0),
+                              child: Hero(
+                                tag: 'cover_${song.id}',
+                                child: NetImage(song.coverUrl, width: 320, height: 320, radius: 0),
+                              ),
                             ),
                             if (queueLen > 1)
                               Positioned(
