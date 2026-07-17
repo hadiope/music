@@ -38,6 +38,13 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
         await auth.signUp(_email.text.trim(), _password.text.trim(),
             fullName: _name.text.trim());
       }
+      // User is now signed in → go straight into the app (MainShell).
+      if (mounted) {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const MainShell()),
+          (route) => false,
+        );
+      }
     } catch (e) {
       setState(() => _error = _cleanError(e.toString()));
     } finally {

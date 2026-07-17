@@ -15,7 +15,6 @@ import '../core/theme.dart';
 import 'player_screen.dart';
 import 'genre_screen.dart';
 import 'profile_screen.dart';
-import 'debug_playback_screen.dart';
 import '../widgets/local_banner.dart';
 
 class HomeScreen extends ConsumerWidget {
@@ -67,10 +66,10 @@ class HomeScreen extends ConsumerWidget {
                             children: [
                               Text(
                                 user.isNotEmpty ? '${greetingMessage()} $user' : greetingMessage(),
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 20,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.white,
+                                  color: isDark ? Colors.white : Colors.black87,
                                 ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
@@ -83,7 +82,6 @@ class HomeScreen extends ConsumerWidget {
                                   color: isDark ? AppColors.greyText : Colors.grey.shade600,
                                 ),
                               ),
-                            ],
                           ),
                         ),
                         GestureDetector(
@@ -95,21 +93,6 @@ class HomeScreen extends ConsumerWidget {
                             radius: 20,
                             backgroundColor: AppColors.darkElevated,
                             child: const Icon(Icons.person_outline, color: Colors.white, size: 22),
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        GestureDetector(
-                          onTap: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (_) => const DebugPlaybackScreen()),
-                          ),
-                          child: Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: Colors.orange,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: const Icon(Icons.bug_report, color: Colors.white, size: 20),
                           ),
                         ),
                       ],
@@ -142,7 +125,7 @@ class HomeScreen extends ConsumerWidget {
                     return GestureDetector(
                       onTap: () => Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (_) => GenreScreen(genre: g.name)),
+                        MaterialPageRoute(builder: (_) => GenreScreen(genre: g.localized)),
                       ),
                       child: Container(
                         width: 124,
@@ -176,7 +159,7 @@ class HomeScreen extends ConsumerWidget {
                                 child: Padding(
                                   padding: const EdgeInsets.all(12),
                                   child: Text(
-                                    g.name,
+                                    g.localized,
                                     style: const TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 16,

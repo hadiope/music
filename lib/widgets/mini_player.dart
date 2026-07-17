@@ -29,6 +29,15 @@ class MiniPlayer extends ConsumerWidget {
                 context,
                 MaterialPageRoute(builder: (_) => const PlayerScreen()),
               ),
+              // Swipe up to open the full player (Spotify-style).
+              onVerticalDragEnd: (details) {
+                if (details.primaryVelocity != null && details.primaryVelocity! < 0) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const PlayerScreen()),
+                  );
+                }
+              },
               child: Container(
                 height: 58,
                 margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),

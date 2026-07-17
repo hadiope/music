@@ -56,7 +56,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
                 child: Column(
                   children: [
                     const Spacer(),
-                    // Cover art with swipe-to-change-track
+                    // Cover art with swipe-to-change-track + smooth transition
                     Dismissible(
                       key: ValueKey(song.id),
                       direction: DismissDirection.horizontal,
@@ -74,7 +74,6 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
                         onHorizontalDragEnd: (details) {
                           if (details.primaryVelocity == null) return;
                           final v = details.primaryVelocity!;
-                          // RTL: positive velocity (finger moves LTR) = previous
                           if (isRtl) {
                             if (v > 0) handler.previous();
                             else if (v < 0) handler.next();
@@ -83,32 +82,43 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
                             else if (v > 0) handler.next();
                           }
                         },
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: Hero(
-                                tag: 'cover_${song.id}',
-                                child: NetImage(song.coverUrl, width: 320, height: 320, radius: 0),
-                              ),
-                            ),
-                            if (queueLen > 1)
-                              Positioned(
-                                bottom: 8,
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: Colors.black54,
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: Text(
-                                    '${idx + 1} / $queueLen',
-                                    style: const TextStyle(color: Colors.white, fontSize: 13),
-                                  ),
+                        child: AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 350),
+                          transitionBuilder: (child, anim) => SlideTransition(
+                            position: Tween<Offset>(
+                              begin: const Offset(0.25, 0),
+                              end: Offset.zero,
+                            ).animate(CurvedAnimation(parent: anim, curve: Curves.easeOut)),
+                            child: FadeTransition(opacity: anim, child: child),
+                          ),
+                          child: Stack(
+                            key: ValueKey(song.id),
+                            alignment: Alignment.center,
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: Hero(
+                                  tag: 'cover_${song.id}',
+                                  child: NetImage(song.coverUrl, width: 320, height: 320, radius: 0),
                                 ),
                               ),
-                          ],
+                              if (queueLen > 1)
+                                Positioned(
+                                  bottom: 8,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: Colors.black54,
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    child: Text(
+                                      '${idx + 1} / $queueLen',
+                                      style: const TextStyle(color: Colors.white, fontSize: 13),
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -153,7 +163,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
                               minChildSize: 0.5,
                               builder: (_, ctrl) => Container(
                                 decoration: BoxDecoration(
-                                  color: AppColors.darkSurface,
+                                  color: isDark ? AppColors.darkSurface : AppColors.lightBg,
                                   borderRadius: const BorderRadius.only(
                                     topLeft: Radius.circular(24),
                                     topRight: Radius.circular(24),
@@ -165,16 +175,16 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
                                     Container(
                                       width: 40, height: 4,
                                       decoration: BoxDecoration(
-                                        color: Colors.grey.shade600,
+                                        color: isDark ? Colors.grey.shade600 : Colors.grey.shade400,
                                         borderRadius: BorderRadius.circular(2),
                                       ),
                                     ),
                                     const SizedBox(height: 14),
                                     Text(song.title,
                                         textAlign: TextAlign.center,
-                                        style: const TextStyle(fontSize: 19, fontWeight: FontWeight.bold, color: Colors.white)),
+                                        style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)),
                                     Text(song.artist,
-                                        style: const TextStyle(color: AppColors.greyText, fontSize: 14)),
+                                        style: TextStyle(color: isDark ? AppColors.greyText : Colors.grey.shade600, fontSize: 14)),
                                     const Divider(height: 20),
                                     Expanded(
                                       child: SingleChildScrollView(
@@ -185,7 +195,12 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
                                               ? song.lyrics!
                                               : T.noLyrics,
                                           textAlign: TextAlign.center,
-                                          style: const TextStyle(fontSize: 17, height: 1.9, fontStyle: FontStyle.italic),
+                                          style: TextStyle(
+                                            fontSize: 17,
+                                            height: 1.9,
+                                            fontStyle: FontStyle.italic,
+                                            color: isDark ? Colors.white : Colors.black87,
+                                          ),
                                         ),
                                       ),
                                     ),

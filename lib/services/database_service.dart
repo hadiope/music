@@ -39,12 +39,45 @@ class DatabaseService {
   }
 
   Future<List<Song>> search(String q) async {
-    final res = await _db
-        .from('songs')
-        .select()
-        .or('title.ilike.%$q%,artist.ilike.%$q%')
-        .limit(50);
-    return (res as List).map((e) => Song.fromMap(e)).toList();
+    q = q.trim();
+    if (q.isEmpty) return [];
+    // Build a list of query variants: the raw query + a latin transliteration
+    // of common Persian characters so "خار" also matches "khaar".
+    final variants = <String>{q};
+    final latin = _persianToLatin(q);
+    if (latin != q) variants.add(latin);
+
+    List<dynamic> res = [];
+    for (final v in variants) {
+      final r = await _db
+          .from('songs')
+          .select()
+          .or('title.ilike.%$v%,artist.ilike.%$v%')
+          .limit(50);
+      res.addAll(r as List);
+    }
+    // de-duplicate by id
+    final seen = <String>{};
+    final out = <Song>[];
+    for (final e in res) {
+      final s = Song.fromMap(e);
+      if (seen.add(s.id)) out.add(s);
+    }
+    return out;
+  }
+
+  /// Very small Persian→Latin transliteration map for search convenience.
+  static String _persianToLatin(String s) {
+    const map = {
+      'آ': 'a', 'ا': 'a', 'ب': 'b', 'پ': 'p', 'ت': 't', 'ث': 's', 'ج': 'j',
+      'چ': 'ch', 'ح': 'h', 'خ': 'kh', 'د': 'd', 'ذ': 'z', 'ر': 'r', 'ز': 'z',
+      'ژ': 'zh', 'س': 's', 'ش': 'sh', 'ص': 's', 'ض': 'z', 'ط': 't', 'ظ': 'z',
+      'ع': 'a', 'غ': 'gh', 'ف': 'f', 'ق': 'gh', 'ک': 'k', 'گ': 'g', 'ل': 'l',
+      'م': 'm', 'ن': 'n', 'و': 'v', 'ه': 'h', 'ی': 'y', 'ء': '', 'ؤ': 'v',
+      'ئ': 'y', 'ة': 'h', '۰': '0', '۱': '1', '۲': '2', '۳': '3', '۴': '4',
+      '۵': '5', '۶': '6', '۷': '7', '۸': '8', '۹': '9',
+    };
+    return s.split('').map((c) => map[c] ?? c).join();
   }
 
   Future<void> incrementPlays(String songId) async {

@@ -32,20 +32,28 @@ class _DeviceLibraryScreenState extends ConsumerState<DeviceLibraryScreen> {
   Future<void> _load() async {
     setState(() => _loading = true);
     try {
-      final status = await Permission.audio.request();
+      // On Android 13+ use Permission.audio; on older versions use storage.
+      PermissionStatus status = await Permission.audio.request();
       if (!status.isGranted) {
-        final legacy = await Permission.storage.request();
-        if (!legacy.isGranted) {
-          setState(() {
-            _loading = false;
-            _error = T.lang == 'en'
-                ? 'Storage permission not granted'
-                : 'دسترسی به حافظه داده نشد';
-          });
-          return;
-        }
+        status = await Permission.storage.request();
+      }
+      if (!status.isGranted) {
+        // Last resort: try manage external storage (Android 11+)
+        try {
+          status = await Permission.manageExternalStorage.request();
+        } catch (_) {}
+      }
+      if (!status.isGranted) {
+        setState(() {
+          _loading = false;
+          _error = T.lang == 'en'
+              ? 'Storage permission not granted'
+              : 'دسترسی به حافظه داده نشد';
+        });
+        return;
       }
 
+      // Expanded list of common music folders (internal + external SD).
       final roots = [
         '/storage/emulated/0/Music',
         '/storage/emulated/0/Download',
@@ -53,11 +61,15 @@ class _DeviceLibraryScreenState extends ConsumerState<DeviceLibraryScreen> {
         '/storage/emulated/0/Audio',
         '/storage/emulated/0/Sounds',
         '/storage/emulated/0/Recordings',
+        '/storage/emulated/0/Movies',
+        '/storage/emulated/0/Podcasts',
+        '/storage/emulated/0/WhatsApp/Media/WhatsApp Audio',
         // Common SD card mount points (external volumes)
         '/storage/sdcard1',
         '/mnt/sdcard/ext_sd',
         '/mnt/extsd',
         '/storage/extSdCard',
+        '/storage/1234-5678',
       ];
 
       // Auto-detect mounted SD cards under /storage/<uuid>/
@@ -67,11 +79,11 @@ class _DeviceLibraryScreenState extends ConsumerState<DeviceLibraryScreen> {
           await for (final e in storageDir.list()) {
             if (e is Directory) {
               final name = e.path.split('/').last;
-              // skip the emulated (internal) volume
               if (name == 'emulated' || name == 'self') continue;
               // UUID-style mounts (e.g. 1234-5678) are external SD cards
               if (RegExp(r'^\w{4}-\w{4}$').hasMatch(name)) {
                 roots.add('${e.path}/Music');
+                roots.add('${e.path}/Download');
                 roots.add(e.path);
               }
             }

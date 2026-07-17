@@ -80,7 +80,7 @@ class SearchScreen extends ConsumerWidget {
                   itemBuilder: (_, i) {
                     final g = genresList[i];
                     return GestureDetector(
-                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => GenreScreen(genre: g.name))),
+                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => GenreScreen(genre: g.localized))),
                       child: Container(
                         width: 92,
                         decoration: BoxDecoration(
@@ -113,7 +113,7 @@ class SearchScreen extends ConsumerWidget {
                                 child: Padding(
                                   padding: const EdgeInsets.all(8),
                                   child: Text(
-                                    g.name,
+                                    g.localized,
                                     style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
                                   ),
                                 ),
