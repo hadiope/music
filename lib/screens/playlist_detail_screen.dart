@@ -14,7 +14,7 @@ import '../providers/player_provider.dart';
 import '../widgets/song_tile.dart';
 import '../widgets/ui_kit.dart';
 import '../core/theme.dart';
-import 'player_screen.dart';
+import '../core/app_route.dart';
 import 'local_songs_screen.dart';
 
 /// A device song kept locally (path-based, not in the cloud DB).
@@ -130,7 +130,7 @@ class _PlaylistDetailScreenState extends ConsumerState<PlaylistDetailScreen> {
                           song: e.value,
                           onTap: () {
                             ref.read(playSongProvider).playQueue(list, e.key);
-                            Navigator.push(context, MaterialPageRoute(builder: (_) => const PlayerScreen()));
+                            goToPlayer(context);
                           },
                         )),
                     ..._local.asMap().entries.map((e) {

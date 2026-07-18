@@ -10,7 +10,7 @@ import '../providers/playlist_provider.dart';
 import '../providers/player_provider.dart';
 import '../widgets/song_tile.dart';
 import '../widgets/ui_kit.dart';
-import 'player_screen.dart';
+import '../core/app_route.dart';
 import 'playlist_detail_screen.dart';
 import 'local_songs_screen.dart';
 import 'genre_screen.dart';
@@ -114,7 +114,7 @@ class LibraryScreen extends ConsumerWidget {
             song: list[i],
             onTap: () {
               ref.read(playSongProvider).playQueue(List.from(list), i);
-              Navigator.push(context, MaterialPageRoute(builder: (_) => const PlayerScreen()));
+              goToPlayer(context);
             },
           ),
         );

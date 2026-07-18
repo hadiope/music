@@ -1,11 +1,14 @@
 import 'dart:io';
+import 'package:audio_service/audio_service.dart';
 import 'package:just_audio/just_audio.dart';
 import '../models/song.dart';
 import '../core/strings.dart';
 import 'package:flutter/foundation.dart';
 
-/// Wraps just_audio + background playback (notification / lock screen controls).
-class AudioPlayerHandler {
+/// Background-capable audio handler using audio_service + just_audio.
+/// Provides a media notification + lock-screen controls so playback keeps
+/// running (and is controllable) when the app is in the background.
+class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
   final AudioPlayer player = AudioPlayer();
   List<Song> _queue = [];
   int _currentIndex = 0;
@@ -40,6 +43,7 @@ class AudioPlayerHandler {
       if (i != null && i != _currentIndex) {
         _currentIndex = i;
         _indexNotifier.value = i;
+        _updateMediaItem();
       }
     });
     player.loopModeStream.listen((m) {
@@ -51,17 +55,70 @@ class AudioPlayerHandler {
       _shuffleNotifier.value = on;
     });
     player.playbackEventStream.listen((event) {
-      // Surface real errors in the log so we can diagnose playback issues.
+      // Publish playback state to the media notification / lock screen.
+      _updatePlaybackState();
       if (event.processingState == ProcessingState.completed) {
         debugPrint('playback completed');
       }
     });
     // Catch load/play errors globally so the UI can show what went wrong.
     player.playerStateStream.listen((state) {
+      _updatePlaybackState();
       if (state.processingState == ProcessingState.idle && state.playing) {
         debugPrint('WARNING: player is playing but idle (possible load failure)');
       }
     });
+
+    // Let audio_service know we can control playback.
+    _updatePlaybackState();
+  }
+
+  MediaItem _toMediaItem(Song s) => MediaItem(
+        id: s.id,
+        title: s.title,
+        artist: s.artist,
+        album: s.album.isNotEmpty ? s.album : null,
+        artUri: (s.coverUrl.isNotEmpty && (s.coverUrl.startsWith('http') || s.coverUrl.startsWith('content')))
+            ? Uri.parse(s.coverUrl)
+            : null,
+        duration: s.durationMs > 0 ? Duration(milliseconds: s.durationMs) : null,
+      );
+
+  void _updateMediaItem() {
+    final song = currentSong;
+    if (song != null) {
+      mediaItem.add(_toMediaItem(song));
+    }
+  }
+
+  void _updatePlaybackState() {
+    final state = player.playerState;
+    playbackState.add(PlaybackState(
+      controls: [
+        MediaControl.skipToPrevious,
+        if (state.playing) MediaControl.pause else MediaControl.play,
+        MediaControl.skipToNext,
+        MediaControl.stop,
+      ],
+      systemActions: const {
+        MediaAction.seek,
+        MediaAction.seekForward,
+        MediaAction.seekBackward,
+      },
+      androidCompactActionIndices: const [0, 1, 2],
+      processingState: const {
+        ProcessingState.idle: AudioProcessingState.idle,
+        ProcessingState.loading: AudioProcessingState.loading,
+        ProcessingState.buffering: AudioProcessingState.buffering,
+        ProcessingState.ready: AudioProcessingState.ready,
+        ProcessingState.completed: AudioProcessingState.completed,
+      }[state.processingState]!,
+      playing: state.playing,
+      updatePosition: player.position,
+      bufferedPosition: player.bufferedPosition,
+      speed: player.speed,
+      queueIndex: _currentIndex,
+    ));
   }
 
   /// Builds the right AudioSource for a URL (http(s), file://, content://, or asset).
@@ -102,6 +159,9 @@ class AudioPlayerHandler {
     _currentIndex = startIndex.clamp(0, playable.length - 1);
     _indexNotifier.value = _currentIndex;
     try {
+      // Publish the queue to the notification.
+      queue.add(playable.map(_toMediaItem).toList());
+
       if (playable.length == 1) {
         final s = playable[_currentIndex];
         debugPrint('setQueue: single -> ${s.audioUrl}');
@@ -119,9 +179,8 @@ class AudioPlayerHandler {
       if (_shuffle) {
         await player.setShuffleModeEnabled(true);
       }
-      // Start playback. just_audio begins buffering/loading asynchronously;
-      // playerState.playing becomes true immediately even before the source
-      // is fully loaded, so we just trigger play() and return success.
+      _updateMediaItem();
+      // Start playback.
       await player.play();
       debugPrint('setQueue: play() called, playing=${player.playerState.playing}');
       return null;
@@ -191,6 +250,7 @@ class AudioPlayerHandler {
       final src = _buildSource(song);
       debugPrint('playLocalFile: setAudioSource...');
       await player.setAudioSource(src);
+      _updateMediaItem();
       debugPrint('playLocalFile: play()...');
       await player.play();
       debugPrint('playLocalFile: success');
@@ -201,23 +261,35 @@ class AudioPlayerHandler {
     }
   }
 
+  @override
   Future<void> play() => player.play();
+
+  @override
   Future<void> pause() => player.pause();
+
+  @override
   Future<void> seek(Duration pos) => player.seek(pos);
+
+  @override
+  Future<void> skipToNext() => next();
+
+  @override
+  Future<void> skipToPrevious() => previous();
+
+  @override
+  Future<void> stop() async {
+    await player.stop();
+    await super.stop();
+  }
 
   Future<void> next() async {
     if (_queue.isEmpty) return;
     try {
-      if (_currentIndex < _queue.length - 1 || _loop == LoopMode.all) {
-        await player.seekToNext();
-      } else {
-        // last track, loop off -> stop at end (just pause)
-        await player.pause();
-      }
+      // just_audio handles shuffle/loop order automatically via seekToNext.
+      await player.seekToNext();
     } catch (_) {
+      // End of queue in non-loop mode — wrap around manually.
       final i = (_currentIndex + 1) % _queue.length;
-      _currentIndex = i;
-      _indexNotifier.value = i;
       await _playIndex(i);
     }
   }
@@ -235,8 +307,6 @@ class AudioPlayerHandler {
       await player.seekToPrevious();
     } catch (_) {
       final i = (_currentIndex - 1 + _queue.length) % _queue.length;
-      _currentIndex = i;
-      _indexNotifier.value = i;
       await _playIndex(i);
     }
   }

@@ -45,9 +45,13 @@ String? _parsePlaylistId(String? link) {
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // NOTE: just_audio_background removed (caused LateInitializationError on some
-  // devices). Background notification controls will be re-added later with a
-  // stable approach. Core playback uses just_audio directly for now.
+  // Background playback: audio_service wires up the media notification and
+  // lock-screen controls so playback keeps running when the app is backgrounded.
+  try {
+    await initAudioService();
+  } catch (e) {
+    debugPrint('AudioService init failed: $e');
+  }
 
   // Supabase — guarded so the app still opens if keys are not set yet.
   bool supabaseReady = false;

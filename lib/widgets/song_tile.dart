@@ -52,7 +52,10 @@ class SongCard extends StatelessWidget {
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(6),
-              child: NetImage(song.coverUrl, width: size, height: size, radius: 0),
+              child: Hero(
+                tag: 'cover_${song.id}',
+                child: NetImage(song.coverUrl, width: size, height: size, radius: 0),
+              ),
             ),
             const SizedBox(height: 8),
             Text(song.title,

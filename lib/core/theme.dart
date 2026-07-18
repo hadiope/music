@@ -14,9 +14,9 @@ class AppColors {
   static const Color darkElevated = Color(0xFF282828);
 
   // Light (kept subtle, still minimal)
-  static const Color lightBg = Color(0xFFFFFFFF);
-  static const Color lightSurface = Color(0xFFF7F7F7);
-  static const Color lightCard = Color(0xFFF0F0F0);
+  static const Color lightBg = Color(0xFFF7F7F8);
+  static const Color lightSurface = Color(0xFFEDEDF0);
+  static const Color lightCard = Color(0xFFE4E4E8);
 
   static const Color greyText = Color(0xFFB3B3B3);
 }

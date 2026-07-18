@@ -15,7 +15,7 @@ class T {
   static String get library => _lang == 'en' ? 'Library' : 'کتابخانه';
   static String get myMusic => _lang == 'en' ? 'My Music' : 'آهنگ‌های من';
   static String get categories => _lang == 'en' ? 'Categories' : 'دسته‌بندی‌ها';
-  static String get nowPlaying => _lang == 'en' ? 'Now Playing' : 'در حال پخش';
+  static String get nowPlaying => _lang == 'en' ? 'Recently played' : 'اخیرا گوش کردی';
   static String get liked => _lang == 'en' ? 'Liked' : 'پسندیده';
   static String get playlists => _lang == 'en' ? 'Playlists' : 'پلی‌لیست‌ها';
 

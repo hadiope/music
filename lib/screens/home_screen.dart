@@ -12,7 +12,7 @@ import '../widgets/section_header.dart';
 import '../widgets/song_tile.dart';
 import '../widgets/ui_kit.dart';
 import '../core/theme.dart';
-import 'player_screen.dart';
+import '../core/app_route.dart';
 import 'genre_screen.dart';
 import 'profile_screen.dart';
 import '../widgets/local_banner.dart';
@@ -203,7 +203,7 @@ class HomeScreen extends ConsumerWidget {
                                 );
                               }
                               if (context.mounted) {
-                                Navigator.push(context, MaterialPageRoute(builder: (_) => const PlayerScreen()));
+                                goToPlayer(context);
                               }
                             },
                           ),
@@ -230,7 +230,7 @@ class HomeScreen extends ConsumerWidget {
                         );
                       }
                       if (context.mounted) {
-                        Navigator.push(context, MaterialPageRoute(builder: (_) => const PlayerScreen()));
+                        goToPlayer(context);
                       }
                     },
                   ),

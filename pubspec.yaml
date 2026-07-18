@@ -21,6 +21,7 @@ dependencies:
 
   # Audio
   just_audio: ^0.9.40
+  audio_service: ^0.18.15
 
   # UI / UX
   cached_network_image: ^3.3.1

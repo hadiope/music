@@ -8,6 +8,7 @@ import '../core/theme.dart';
 import '../providers/auth_provider.dart';
 import '../providers/core_providers.dart';
 import '../providers/settings_provider.dart';
+import '../providers/songs_provider.dart';
 import 'playlist_detail_screen.dart';
 import 'local_songs_screen.dart';
 import 'auth_screen.dart';
@@ -118,17 +119,20 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       _nameInitialized = true;
     }
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final onSurface = isDark ? Colors.white : Colors.black87;
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: Icon(Icons.arrow_back, color: onSurface),
           onPressed: () => Navigator.pop(context),
           tooltip: T.lang == 'en' ? 'Back' : 'بازگشت',
         ),
         title: Text(T.profileSettings,
-            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            style: TextStyle(color: onSurface, fontWeight: FontWeight.bold)),
       ),
       body: ListView(
         children: [
@@ -295,7 +299,27 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             ],
 
             const Divider(height: 28),
-          ],
+
+          // --- Manage songs (debug / admin) ---
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Text(T.lang == 'en' ? 'Manage songs' : 'مدیریت آهنگ‌ها',
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+          ),
+          const SizedBox(height: 8),
+          ListTile(
+            leading: const Icon(Icons.delete_sweep, color: Colors.redAccent),
+            title: Text(T.lang == 'en' ? 'Delete ALL songs' : 'حذف همه آهنگ‌ها',
+                style: const TextStyle(color: Colors.redAccent)),
+            subtitle: Text(
+              T.lang == 'en'
+                  ? 'Permanently removes every song from the catalogue'
+                  : 'همه آهنگ‌های کاتالوگ برای همیشه حذف می‌شوند',
+              style: const TextStyle(fontSize: 12),
+            ),
+            onTap: () => _confirmDeleteAllSongs(context, ref),
+          ),
+          const Divider(height: 28),
 
           // --- Appearance & language ---
           SwitchListTile(
@@ -329,5 +353,53 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         ],
       ),
     );
+  }
+
+  Future<void> _confirmDeleteAllSongs(BuildContext context, WidgetRef ref) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text(T.lang == 'en' ? 'Delete all songs?' : 'حذف همه آهنگ‌ها؟'),
+        content: Text(T.lang == 'en'
+            ? 'This permanently removes every song from the catalogue. This cannot be undone.'
+            : 'این کار همه آهنگ‌های کاتالوگ را برای همیشه حذف می‌کند. قابل بازگشت نیست.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(T.cancel),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: Colors.redAccent),
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(T.lang == 'en' ? 'Delete all' : 'حذف همه'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+
+    setState(() => _saving = true);
+    try {
+      await ref.read(databaseProvider).deleteAllSongs();
+      // Refresh song lists
+      ref.invalidate(newReleasesProvider);
+      ref.invalidate(popularProvider);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(T.lang == 'en' ? 'All songs deleted ✓' : 'همه آهنگ‌ها حذف شدند ✓'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(T.errGeneric.replaceAll('{e}', e.toString())), backgroundColor: Colors.red),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
   }
 }

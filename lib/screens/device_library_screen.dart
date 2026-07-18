@@ -8,7 +8,7 @@ import '../widgets/net_image.dart';
 import '../core/strings.dart';
 import '../providers/core_providers.dart';
 import '../providers/settings_provider.dart';
-import 'player_screen.dart';
+import '../core/app_route.dart';
 
 /// Lists all audio files on the device (Samsung Music style).
 class DeviceLibraryScreen extends ConsumerStatefulWidget {
@@ -54,6 +54,9 @@ class _DeviceLibraryScreenState extends ConsumerState<DeviceLibraryScreen> {
       }
 
       // Expanded list of common music folders (internal + external SD).
+      // Each path is checked individually so a missing/unmounted SD card
+      // (e.g. /mnt/sdcard/ext_sd) does NOT crash the whole scan with a
+      // Permission denied error.
       final roots = [
         '/storage/emulated/0/Music',
         '/storage/emulated/0/Download',
@@ -69,7 +72,6 @@ class _DeviceLibraryScreenState extends ConsumerState<DeviceLibraryScreen> {
         '/mnt/sdcard/ext_sd',
         '/mnt/extsd',
         '/storage/extSdCard',
-        '/storage/1234-5678',
       ];
 
       // Auto-detect mounted SD cards under /storage/<uuid>/
@@ -95,30 +97,37 @@ class _DeviceLibraryScreenState extends ConsumerState<DeviceLibraryScreen> {
 
       final found = <Song>[];
       for (final root in roots) {
-        final dir = Directory(root);
-        if (!await dir.exists()) continue;
-        await for (final entity in dir.list(recursive: true, followLinks: false)) {
-          if (entity is File) {
-            final ext = entity.path.toLowerCase();
-            if (ext.endsWith('.mp3') ||
-                ext.endsWith('.m4a') ||
-                ext.endsWith('.aac') ||
-                ext.endsWith('.flac') ||
-                ext.endsWith('.wav') ||
-                ext.endsWith('.ogg')) {
-              final name = entity.path.split('/').last;
-              found.add(Song(
-                id: 'device_${entity.path.hashCode}',
-                title: name.replaceAll(RegExp(r'\.(mp3|m4a|aac|flac|wav|ogg)$'), ''),
-                artist: 'دستگاه',
-                audioUrl: entity.path,
-                coverUrl: '',
-                genre: '',
-                album: '',
-                plays: 0,
-              ));
+        try {
+          final dir = Directory(root);
+          // Skip paths we cannot even stat (unmounted SD, permission denied).
+          if (!await dir.exists()) continue;
+          await for (final entity in dir.list(recursive: true, followLinks: false)) {
+            if (entity is File) {
+              final ext = entity.path.toLowerCase();
+              if (ext.endsWith('.mp3') ||
+                  ext.endsWith('.m4a') ||
+                  ext.endsWith('.aac') ||
+                  ext.endsWith('.flac') ||
+                  ext.endsWith('.wav') ||
+                  ext.endsWith('.ogg')) {
+                final name = entity.path.split('/').last;
+                found.add(Song(
+                  id: 'device_${entity.path.hashCode}',
+                  title: name.replaceAll(RegExp(r'\.(mp3|m4a|aac|flac|wav|ogg)$'), ''),
+                  artist: 'دستگاه',
+                  audioUrl: entity.path,
+                  coverUrl: '',
+                  genre: '',
+                  album: '',
+                  plays: 0,
+                ));
+              }
             }
           }
+        } catch (e) {
+          // A single inaccessible folder (e.g. /mnt/sdcard/ext_sd without
+          // permission) must not abort the whole scan.
+          debugPrint('skipping $root: $e');
         }
       }
 
@@ -146,75 +155,6 @@ class _DeviceLibraryScreenState extends ConsumerState<DeviceLibraryScreen> {
       ),
       body: Column(
         children: [
-          // Offline test song (always works — bundled in the app)
-          ListTile(
-            leading: const Icon(Icons.audiotrack, color: Color(0xFF1DB954)),
-            title: Text(T.lang == 'en' ? 'Offline test playback' : 'پخش تست (آفلاین)'),
-            subtitle: Text(T.lang == 'en'
-                ? 'If this plays, the issue is the songs being filtered'
-                : 'اگه این پخش شد، مشکل از فیلتر بودن آهنگ‌هاست'),
-            onTap: () async {
-              final handler = ref.read(audioHandlerProvider);
-              final err = await handler.playLocalFile(
-                'assets/audio/sample.mp3',
-                title: T.lang == 'en' ? 'Offline test' : 'تست آفلاین',
-                artist: 'Iran Seda',
-              );
-              final ok = err == null;
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(ok
-                        ? (T.lang == 'en' ? 'Playing offline test ✓' : 'در حال پخش تست آفلاین ✓')
-                        : (T.lang == 'en' ? 'Offline test FAILED: $err' : 'تست آفلاین شکست خورد: $err')),
-                    backgroundColor: ok ? Colors.green : Colors.red,
-                  ),
-                );
-                if (ok) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const PlayerScreen()),
-                  );
-                }
-              }
-            },
-          ),
-          // Online test (SoundHelix) — checks if network streaming works at all
-          ListTile(
-            leading: const Icon(Icons.cloud, color: Color(0xFF1DB954)),
-            title: Text(T.lang == 'en' ? 'Online test playback' : 'پخش تست (آنلاین)'),
-            subtitle: Text(T.lang == 'en'
-                ? 'Streams a public test MP3 to isolate network issues'
-                : 'یه MP3 عمومی پخش می‌کنه تا مشکل شبکه مشخص شه'),
-            onTap: () async {
-              final handler = ref.read(audioHandlerProvider);
-              final err = await handler.setQueueSafe([
-                Song(
-                  id: 'test_online',
-                  title: 'SoundHelix Test',
-                  artist: 'Test',
-                  audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
-                  coverUrl: '',
-                )
-              ], startIndex: 0);
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(err == null
-                        ? (T.lang == 'en' ? 'Playing online test ✓' : 'در حال پخش تست آنلاین ✓')
-                        : (T.lang == 'en' ? 'Online test FAILED: $err' : 'تست آنلاین شکست خورد: $err')),
-                    backgroundColor: err == null ? Colors.green : Colors.red,
-                  ),
-                );
-                if (err == null) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const PlayerScreen()),
-                  );
-                }
-              }
-            },
-          ),
           const Divider(height: 1),
           Expanded(
             child: _loading
@@ -237,10 +177,7 @@ class _DeviceLibraryScreenState extends ConsumerState<DeviceLibraryScreen> {
                                   final err = await handler.playLocalFile(s.audioUrl,
                                       title: s.title, artist: s.artist);
                                   if (err == null && context.mounted) {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(builder: (_) => const PlayerScreen()),
-                                    );
+                                    goToPlayer(context);
                                   } else if (context.mounted) {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(content: Text('خطا: $err'), backgroundColor: Colors.red),

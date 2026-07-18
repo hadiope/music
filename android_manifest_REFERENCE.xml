@@ -57,6 +57,16 @@
             </intent-filter>
         </activity>
 
+        <!-- audio_service: background media playback notification + lock screen -->
+        <service
+            android:name="com.ryanheise.audioservice.MediaSessionService"
+            android:exported="true"
+            android:foregroundServiceType="mediaPlayback">
+            <intent-filter>
+                <action android:name="android.intent.action.MEDIA_BUTTON"/>
+            </intent-filter>
+        </service>
+
         <meta-data
             android:name="flutterEmbedding"
             android:value="2"/>

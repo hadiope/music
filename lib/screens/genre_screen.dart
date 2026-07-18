@@ -6,7 +6,7 @@ import '../providers/songs_provider.dart';
 import '../providers/player_provider.dart';
 import '../providers/settings_provider.dart';
 import '../widgets/song_tile.dart';
-import 'player_screen.dart';
+import '../core/app_route.dart';
 
 class GenreScreen extends ConsumerWidget {
   final String genre;
@@ -62,7 +62,7 @@ class GenreScreen extends ConsumerWidget {
                         song: songs[i],
                         onTap: () {
                           ref.read(playSongProvider).playQueue(songs, i);
-                          Navigator.push(context, MaterialPageRoute(builder: (_) => const PlayerScreen()));
+                          goToPlayer(context);
                         },
                       ),
                       childCount: songs.length,

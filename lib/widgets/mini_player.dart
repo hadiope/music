@@ -3,7 +3,7 @@ import '../widgets/net_image.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/theme.dart';
 import '../providers/core_providers.dart';
-import '../screens/player_screen.dart';
+import '../core/app_route.dart';
 
 /// The persistent mini-player shown above the bottom nav bar (Spotify style:
 /// dark elevated bar, tight, single green control).
@@ -15,29 +15,23 @@ class MiniPlayer extends ConsumerWidget {
     final handler = ref.watch(audioHandlerProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return ValueListenableBuilder<int>(
-      valueListenable: handler.indexNotifier,
-      builder: (context, idx, _) {
+    return StreamBuilder<PlayerState>(
+      stream: handler.playerStateStream,
+      builder: (context, snap) {
+        // Rebuild on any player state change (playing/paused/stopped) so the
+        // mini-player appears immediately on the first tap — indexNotifier
+        // alone doesn't fire when the first song loads at index 0.
         final song = handler.currentSong;
         if (song == null) return const SizedBox.shrink();
-        return StreamBuilder(
-          stream: handler.playerStateStream,
-          builder: (context, snapshot) {
-            final playing = snapshot.data?.playing ?? false;
-            return GestureDetector(
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const PlayerScreen()),
-              ),
-              // Swipe up to open the full player (Spotify-style).
-              onVerticalDragEnd: (details) {
-                if (details.primaryVelocity != null && details.primaryVelocity! < 0) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const PlayerScreen()),
-                  );
-                }
-              },
+        final playing = snap.data?.playing ?? false;
+        child: GestureDetector(
+                onTap: () => goToPlayer(context),
+                // Swipe up to open the full player (Spotify-style).
+                onVerticalDragEnd: (details) {
+                  if (details.primaryVelocity != null && details.primaryVelocity! < 0) {
+                    goToPlayer(context);
+                  }
+                },
               child: Container(
                 height: 58,
                 margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
@@ -91,8 +85,6 @@ class MiniPlayer extends ConsumerWidget {
                 ),
               ),
             );
-          },
-        );
       },
     );
   }

@@ -32,8 +32,8 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
       appBar: AppBar(
         leading: IconButton(icon: const Icon(Icons.keyboard_arrow_down), onPressed: () => Navigator.pop(context)),
         title: Text(T.nowPlayingTitle),
-        backgroundColor: AppColors.darkBg,
-        foregroundColor: Colors.white,
+        backgroundColor: isDark ? AppColors.darkBg : AppColors.lightBg,
+        foregroundColor: isDark ? Colors.white : Colors.black87,
       ),
       body: ValueListenableBuilder<int>(
         valueListenable: handler.indexNotifier,
@@ -124,17 +124,28 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
                       ),
                     ),
                     const SizedBox(height: 32),
-                    // Title + artist + like
+                    // Title + artist + like (animated on track change)
                     Row(
                       children: [
                         Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(song.title, 
-                                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-                              Text(song.artist, style: const TextStyle(fontSize: 15, color: Colors.grey)),
-                            ],
+                          child: AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 300),
+                            transitionBuilder: (child, anim) => SlideTransition(
+                              position: Tween<Offset>(
+                                begin: const Offset(0, 0.15),
+                                end: Offset.zero,
+                              ).animate(CurvedAnimation(parent: anim, curve: Curves.easeOutCubic)),
+                              child: FadeTransition(opacity: anim, child: child),
+                            ),
+                            child: Column(
+                              key: ValueKey(song.id),
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(song.title,
+                                    style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                                Text(song.artist, style: const TextStyle(fontSize: 15, color: Colors.grey)),
+                              ],
+                            ),
                           ),
                         ),
                         IconButton(
@@ -254,7 +265,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
                       },
                     ),
                     const SizedBox(height: 8),
-                    // Controls
+                    // Controls — RTL-aware: next on the right, previous on the left
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
@@ -269,7 +280,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
                             },
                           ),
                         ),
-                        IconButton(iconSize: 40, icon: const Icon(Icons.skip_previous), onPressed: () => handler.previous()),
+                        IconButton(iconSize: 40, icon: const Icon(Icons.skip_next), onPressed: () => handler.next()),
                         Container(
                           decoration: const BoxDecoration(color: Color(0xFF1DB954), shape: BoxShape.circle),
                           child: IconButton(
@@ -278,7 +289,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
                             onPressed: () => playing ? handler.pause() : handler.play(),
                           ),
                         ),
-                        IconButton(iconSize: 40, icon: const Icon(Icons.skip_next), onPressed: () => handler.next()),
+                        IconButton(iconSize: 40, icon: const Icon(Icons.skip_previous), onPressed: () => handler.previous()),
                         ValueListenableBuilder<bool>(
                           valueListenable: handler.shuffleNotifier,
                           builder: (_, shuf, __) => IconButton(

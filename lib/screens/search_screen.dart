@@ -9,7 +9,7 @@ import '../providers/player_provider.dart';
 import '../providers/settings_provider.dart';
 import '../widgets/song_tile.dart';
 import '../widgets/ui_kit.dart';
-import 'player_screen.dart';
+import '../core/app_route.dart';
 import 'genre_screen.dart';
 
 class SearchScreen extends ConsumerWidget {
@@ -146,7 +146,7 @@ class SearchScreen extends ConsumerWidget {
                     song: songs[i],
                     onTap: () {
                       ref.read(playSongProvider).playQueue(songs, i);
-                      Navigator.push(context, MaterialPageRoute(builder: (_) => const PlayerScreen()));
+                      goToPlayer(context);
                     },
                   ),
                 );

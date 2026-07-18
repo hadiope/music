@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/strings.dart';
 import '../providers/core_providers.dart';
-import 'player_screen.dart';
+import '../core/app_route.dart';
 
 /// Lets the user pick audio files from the device and play them through the
 /// shared audio handler — a lightweight on-device music player that avoids
@@ -108,7 +108,7 @@ class _DeviceSongsScreenState extends ConsumerState<DeviceSongsScreen> {
             final handler = ref.read(audioHandlerProvider);
             final err = await handler.playLocalFile(f.path, title: _name(f));
             if (err == null && mounted) {
-              Navigator.push(context, MaterialPageRoute(builder: (_) => const PlayerScreen()));
+              goToPlayer(context);
             } else if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(content: Text('خطا: $err')),

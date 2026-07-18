@@ -84,6 +84,19 @@ class DatabaseService {
     await _db.rpc('increment_plays', params: {'song_id': songId});
   }
 
+  /// Deletes ALL songs from the catalogue (admin/debug utility).
+  /// Also clears playlist_songs / likes / history referencing them so we
+  /// don't leave dangling references.
+  Future<void> deleteAllSongs() async {
+    // playlist_songs references songs (on delete cascade would handle it,
+    // but we run as the anon/service role which may not have cascade rights,
+    // so clean up explicitly).
+    await _db.from('playlist_songs').delete().neq('song_id', '00000000-0000-0000-0000-000000000000');
+    await _db.from('likes').delete().neq('song_id', '00000000-0000-0000-0000-000000000000');
+    await _db.from('play_history').delete().neq('song_id', '00000000-0000-0000-0000-000000000000');
+    await _db.from('songs').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+  }
+
   // ---------- Albums ----------
   Future<List<Album>> getAlbums({int limit = 20}) async {
     final res = await _db.from('albums').select().limit(limit);
