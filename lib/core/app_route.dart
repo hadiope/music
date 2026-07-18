@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'screens/player_screen.dart';
+import '../screens/player_screen.dart';
 
 /// Smooth, shared page transition used app-wide for navigation into the
 /// full player and detail screens. A gentle slide-up + fade keeps the UI

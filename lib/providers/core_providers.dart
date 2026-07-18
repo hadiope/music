@@ -35,8 +35,6 @@ Future<AudioPlayerHandler> initAudioService() async {
       androidNotificationChannelName: 'Iran Seda Playback',
       androidNotificationOngoing: true,
       androidShowNotificationBadge: true,
-      notificationColor: Color(0xFF1DB954),
-      artDownscaleSize: 200,
     ),
   );
   return handler as AudioPlayerHandler;

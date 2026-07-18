@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../widgets/net_image.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:just_audio/just_audio.dart';
 import '../core/theme.dart';
 import '../providers/core_providers.dart';
 import '../core/app_route.dart';
@@ -24,7 +25,7 @@ class MiniPlayer extends ConsumerWidget {
         final song = handler.currentSong;
         if (song == null) return const SizedBox.shrink();
         final playing = snap.data?.playing ?? false;
-        child: GestureDetector(
+        return GestureDetector(
                 onTap: () => goToPlayer(context),
                 // Swipe up to open the full player (Spotify-style).
                 onVerticalDragEnd: (details) {

@@ -47,7 +47,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
             builder: (context, snap) {
               final playing = snap.data?.playing ?? false;
               final liked = likes.contains(song.id);
-              final queueLen = handler.queue.length;
+              final queueLen = handler.songQueue.length;
               // RTL-aware: in RTL, swiping left-to-right (positive velocity)
               // means "previous" (going back), right-to-left means "next".
               final isRtl = Directionality.of(context) == TextDirection.rtl;

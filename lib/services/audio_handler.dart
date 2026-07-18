@@ -20,7 +20,7 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
   final _shuffleNotifier = ValueNotifier<bool>(false);
   final _loopNotifier = ValueNotifier<LoopMode>(LoopMode.off);
 
-  List<Song> get queue => _queue;
+  List<Song> get songQueue => _queue;
   int get currentIndex => _currentIndex;
   ValueNotifier<int> get indexNotifier => _indexNotifier;
   ValueNotifier<bool> get shuffleNotifier => _shuffleNotifier;
@@ -77,11 +77,11 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
         id: s.id,
         title: s.title,
         artist: s.artist,
-        album: s.album.isNotEmpty ? s.album : null,
+        album: s.album?.isNotEmpty == true ? s.album : null,
         artUri: (s.coverUrl.isNotEmpty && (s.coverUrl.startsWith('http') || s.coverUrl.startsWith('content')))
             ? Uri.parse(s.coverUrl)
             : null,
-        duration: s.durationMs > 0 ? Duration(milliseconds: s.durationMs) : null,
+        duration: s.durationMs != null && s.durationMs! > 0 ? Duration(milliseconds: s.durationMs!) : null,
       );
 
   void _updateMediaItem() {

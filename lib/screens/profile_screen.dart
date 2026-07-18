@@ -297,6 +297,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 ),
               ),
             ],
+            ],
 
             const Divider(height: 28),
 
