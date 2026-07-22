@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -12,6 +13,7 @@ import '../providers/core_providers.dart';
 import '../providers/playlist_provider.dart';
 import '../providers/songs_provider.dart';
 import '../providers/player_provider.dart';
+import '../providers/settings_provider.dart';
 import '../widgets/song_tile.dart';
 import '../widgets/ui_kit.dart';
 import 'player_screen.dart';
@@ -312,6 +314,7 @@ class _PlaylistDetailScreenState extends ConsumerState<PlaylistDetailScreen>
                                 ? ClipRRect(
                                     borderRadius: BorderRadius.circular(6),
                                     child: Image.file(
+                                      File(s.coverPath!),
                                       fit: BoxFit.cover,
                                       width: 50, height: 50,
                                       errorBuilder: (_, __, ___) => const CircleAvatar(
