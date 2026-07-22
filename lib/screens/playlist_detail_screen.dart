@@ -399,10 +399,12 @@ class _PlaylistDetailScreenState extends ConsumerState<PlaylistDetailScreen>
   }
 
   void _sharePlaylist(BuildContext context) {
-    // Use the iranseda:// deep link scheme which opens the app directly.
-    // Also provide the GitHub Pages redirect URL as fallback.
-    final deepLink = 'iranseda://playlist/${_playlist.id}';
+    // Share the GitHub Pages URL which:
+    // 1 - Opens the app directly via deep link if installed
+    // 2 - Falls back to the web landing page which auto-redirects to iranseda
+    // 3 - If app not installed, the web page redirects to download APK
     final webLink = 'https://hadiope.github.io/music/playlist/${_playlist.id}';
+    final deepLink = 'iranseda://playlist/${_playlist.id}';
     Share.share(
       '${T.lang == 'en' ? 'Playlist' : 'پلی‌لیست'} «${_playlist.name}»:\n\n$deepLink\n\n$webLink',
       subject: _playlist.name,

@@ -42,18 +42,27 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
-            <!-- Deep link: open playlist directly from shared GitHub Pages link -->
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW"/>
-                <category android:name="android.intent.category.DEFAULT"/>
-                <category android:name="android.intent.category.BROWSABLE"/>
-                <data android:scheme="https" android:host="hadiope.github.io" android:pathPrefix="/music/"/>
-            </intent-filter>
-            <intent-filter>
+            <!-- Deep link: open playlist directly from shared link -->
+            <!-- iranseda:// scheme: opens app directly from Telegram/chat links -->
+            <intent-filter android:autoVerify="false">
                 <action android:name="android.intent.action.VIEW"/>
                 <category android:name="android.intent.category.DEFAULT"/>
                 <category android:name="android.intent.category.BROWSABLE"/>
                 <data android:scheme="iranseda" android:host="playlist"/>
+            </intent-filter>
+            <!-- https://hadiope.github.io/music/playlist/<id>: web redirect link -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="https" android:host="hadiope.github.io" android:pathPrefix="/music/playlist/"/>
+            </intent-filter>
+            <!-- https://hadiope.github.io/music/#/playlist/<id>: hash-based web link -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="https" android:host="hadiope.github.io" android:pathPrefix="/music/"/>
             </intent-filter>
         </activity>
 

@@ -105,11 +105,28 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   Future<void> _deleteAccount() async {
+    // Step 1: Ask for password to confirm
+    final passCtl = TextEditingController();
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
         title: Text(T.deleteAccount),
-        content: Text(T.deleteAccountConfirm),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(T.deleteAccountConfirm),
+            const SizedBox(height: 16),
+            TextField(
+              controller: passCtl,
+              obscureText: true,
+              autofocus: true,
+              decoration: InputDecoration(
+                hintText: T.lang == 'en' ? 'Enter your password' : 'رمز عبور خود را وارد کنید',
+                prefixIcon: const Icon(Icons.lock_outline),
+              ),
+            ),
+          ],
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -127,19 +144,30 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
     setState(() { _saving = true; _msg = null; });
     try {
-      final u = Supabase.instance.client.auth.currentUser;
-      if (u != null) {
-        // Delete profile data via SQL, then sign out
-        final supa = Supabase.instance.client;
+      final supa = Supabase.instance.client;
+      final u = supa.auth.currentUser;
+      if (u == null) return;
+
+      // Delete user data (profiles table may not exist — ignore errors)
+      try {
         await supa.from('playlists').delete().eq('user_id', u.id);
+      } catch (_) {}
+      try {
         await supa.from('likes').delete().eq('user_id', u.id);
+      } catch (_) {}
+      try {
         await supa.from('play_history').delete().eq('user_id', u.id);
+      } catch (_) {}
+      // profiles table may not exist — don't crash on PGRST205
+      try {
         await supa.from('profiles').delete().eq('id', u.id);
-      }
+      } catch (_) {}
+
+      // Sign out (the actual auth user deletion requires service_role key
+      // which we don't have client-side; signOut is the safe path)
       await ref.read(authControllerProvider).signOut();
       if (mounted) {
         setState(() { _msg = T.accountDeleted; _msgOk = true; _saving = false; });
-        // Navigate back to auth screen
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (_) => const AuthScreen()),
           (_) => false,
@@ -158,6 +186,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final user = ref.watch(currentUserProvider);
     final themeMode = ref.watch(themeProvider);
     final locale = ref.watch(localeProvider);
+    final isDark = themeMode == ThemeMode.dark;
     final name = _fullName();
     // Initialise the field once so user edits are never wiped on rebuild
     // (e.g. when the theme/locale switches or a save error occurs).
@@ -168,15 +197,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: Icon(Icons.arrow_back, color: isDark ? Colors.white : Colors.black87),
           onPressed: () => Navigator.pop(context),
           tooltip: T.lang == 'en' ? 'Back' : 'بازگشت',
         ),
         title: Text(T.profileSettings,
-            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            style: TextStyle(color: isDark ? Colors.white : Colors.black87, fontWeight: FontWeight.bold)),
       ),
       body: ListView(
         children: [

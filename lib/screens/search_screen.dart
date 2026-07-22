@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/genres.dart';
@@ -12,14 +13,39 @@ import '../widgets/ui_kit.dart';
 import 'player_screen.dart';
 import 'genre_screen.dart';
 
-class SearchScreen extends ConsumerWidget {
+class SearchScreen extends ConsumerStatefulWidget {
   const SearchScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    ref.watch(tProvider); // sync language
+  ConsumerState<SearchScreen> createState() => _SearchScreenState();
+}
+
+class _SearchScreenState extends ConsumerState<SearchScreen> {
+  final _controller = TextEditingController();
+  Timer? _debounce;
+  String _query = '';
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _onSearchChanged(String value) {
+    if (_debounce?.isActive ?? false) _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 400), () {
+      setState(() {
+        _query = value.trim();
+        ref.read(searchQueryProvider.notifier).state = value.trim();
+      });
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    ref.watch(tProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final query = ref.watch(searchQueryProvider);
     final results = ref.watch(searchResultsProvider);
 
     return Scaffold(
@@ -54,21 +80,31 @@ class SearchScreen extends ConsumerWidget {
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: TextField(
-                onChanged: (v) => ref.read(searchQueryProvider.notifier).state = v,
+                controller: _controller,
+                onChanged: _onSearchChanged,
                 decoration: InputDecoration(
                   hintText: T.lang == 'en' ? 'Song or artist...' : 'آهنگ یا خواننده...',
                   prefixIcon: const Icon(Icons.search),
+                  suffixIcon: _query.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.clear),
+                          onPressed: () {
+                            _controller.clear();
+                            _onSearchChanged('');
+                          },
+                        )
+                      : null,
                   filled: true,
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
                 ),
               ),
             ),
           ),
-          if (query.isEmpty)
+          if (_query.isEmpty)
             SliverToBoxAdapter(
               child: UiKit.sectionHeader(T.categories),
             ),
-          if (query.isEmpty)
+          if (_query.isEmpty)
             SliverToBoxAdapter(
               child: SizedBox(
                 height: 104,
@@ -130,7 +166,7 @@ class SearchScreen extends ConsumerWidget {
           SliverFillRemaining(
             child: results.when(
               data: (songs) {
-                if (query.isEmpty)
+                if (_query.isEmpty)
                   return Center(
                     child: Text(
                       T.lang == 'en' ? 'Pick a category or search' : T.pickCategoryOrSearch,
@@ -138,7 +174,16 @@ class SearchScreen extends ConsumerWidget {
                     ),
                   );
                 if (songs.isEmpty)
-                  return Center(child: Text(T.noResults, style: const TextStyle(color: Colors.grey)));
+                  return Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.search_off, size: 56, color: Theme.of(context).hintColor),
+                        const SizedBox(height: 12),
+                        Text(T.noResults, style: const TextStyle(color: Colors.grey)),
+                      ],
+                    ),
+                  );
                 return ListView.builder(
                   padding: const EdgeInsets.only(top: 8),
                   itemCount: songs.length,

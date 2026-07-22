@@ -51,8 +51,6 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
       appBar: AppBar(
         leading: IconButton(icon: const Icon(Icons.keyboard_arrow_down), onPressed: () => Navigator.pop(context)),
         title: Text(T.nowPlayingTitle),
-        backgroundColor: AppColors.darkBg,
-        foregroundColor: Colors.white,
       ),
       body: ValueListenableBuilder<int>(
         valueListenable: handler.indexNotifier,

@@ -101,16 +101,21 @@ class _DeviceLibraryScreenState extends ConsumerState<DeviceLibraryScreen> {
       final found = <DeviceSong>[];
       for (final root in roots) {
         final dir = Directory(root);
-        if (!await dir.exists()) continue;
-        await for (final entity in dir.list(recursive: true, followLinks: false)) {
-          if (entity is File) {
-            final ext = entity.path.toLowerCase();
-            if (ext.endsWith('.mp3') ||
-                ext.endsWith('.m4a') ||
-                ext.endsWith('.aac') ||
-                ext.endsWith('.flac') ||
-                ext.endsWith('.wav') ||
-                ext.endsWith('.ogg')) {
+        try {
+          if (!await dir.exists()) continue;
+        } catch (_) {
+          continue; // permission denied — skip this root
+        }
+        try {
+          await for (final entity in dir.list(recursive: true, followLinks: false)) {
+            if (entity is File) {
+              final ext = entity.path.toLowerCase();
+              if (ext.endsWith('.mp3') ||
+                  ext.endsWith('.m4a') ||
+                  ext.endsWith('.aac') ||
+                  ext.endsWith('.flac') ||
+                  ext.endsWith('.wav') ||
+                  ext.endsWith('.ogg')) {
               final fileName = entity.path.split('/').last;
               final cleanName = fileName.replaceAll(RegExp(r'\.(mp3|m4a|aac|flac|wav|ogg)$'), '');
 
@@ -140,6 +145,9 @@ class _DeviceLibraryScreenState extends ConsumerState<DeviceLibraryScreen> {
               ));
             }
           }
+        }
+        } catch (_) {
+          // Permission denied on this root — skip silently
         }
       }
 

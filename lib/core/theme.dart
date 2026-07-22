@@ -22,8 +22,6 @@ class AppColors {
 }
 
 class AppTheme {
-  // Kept for backwards-compat with widgets that still reference it, but the
-  // Spotify look mostly avoids gradients (used only on the play FAB / avatar).
   static const LinearGradient brandGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
@@ -55,6 +53,7 @@ class AppTheme {
           color: Colors.white,
         ),
         iconTheme: IconThemeData(color: Colors.white),
+        foregroundColor: Colors.white,
       ),
       cardColor: AppColors.darkCard,
       dividerColor: AppColors.darkElevated,
@@ -131,8 +130,11 @@ class AppTheme {
           fontSize: 22,
           fontWeight: FontWeight.bold,
         ),
+        foregroundColor: Colors.black87,
       ),
       cardColor: AppColors.lightCard,
+      dividerColor: Colors.black12,
+      iconTheme: const IconThemeData(color: Colors.black87),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
@@ -158,6 +160,10 @@ class AppTheme {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
         ),
       ),
+      listTileTheme: const ListTileThemeData(
+        contentPadding: EdgeInsets.symmetric(horizontal: 16),
+        iconColor: Colors.black54,
+      ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.lightCard,
@@ -166,6 +172,7 @@ class AppTheme {
           borderSide: BorderSide.none,
         ),
         labelStyle: const TextStyle(color: Colors.black54),
+        hintStyle: const TextStyle(color: Colors.black45),
         prefixIconColor: Colors.black54,
       ),
       cardTheme: CardThemeData(

@@ -121,12 +121,27 @@ class _HarmonyAppState extends ConsumerState<HarmonyApp> with WidgetsBindingObse
   Future<void> _openPlaylistFromLink(String? link) async {
     final id = _parsePlaylistId(link);
     if (id == null || !mounted) return;
+    // Wait for Supabase to be ready and the main shell to be visible
+    await Future.delayed(const Duration(milliseconds: 500));
+    if (!mounted) return;
+
     // Fetch the playlist by ID (works for any user since playlists are public-readable).
-    final pl = await ref.read(playlistControllerProvider).getPlaylistById(id);
-    if (pl != null && mounted) {
-      Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => PlaylistDetailScreen(playlist: pl)),
-      );
+    try {
+      final pl = await ref.read(playlistControllerProvider).getPlaylistById(id);
+      if (pl != null && mounted) {
+        final navigator = Navigator.of(context);
+        // Ensure we're on the main shell first
+        navigator.pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const MainShell()),
+          (_) => false,
+        );
+        // Then push the playlist detail on top
+        navigator.push(
+          MaterialPageRoute(builder: (_) => PlaylistDetailScreen(playlist: pl)),
+        );
+      }
+    } catch (e) {
+      debugPrint('Failed to load playlist from deep link: $e');
     }
   }
 
