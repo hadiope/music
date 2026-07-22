@@ -16,10 +16,29 @@ class PlayerScreen extends ConsumerStatefulWidget {
   ConsumerState<PlayerScreen> createState() => _PlayerScreenState();
 }
 
-class _PlayerScreenState extends ConsumerState<PlayerScreen> {
+class _PlayerScreenState extends ConsumerState<PlayerScreen>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _animController;
+
   String _fmt(Duration d) {
     String two(int n) => n.toString().padLeft(2, '0');
     return '${two(d.inMinutes)}:${two(d.inSeconds % 60)}';
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _animController = AnimationController(
+      duration: const Duration(milliseconds: 400),
+      vsync: this,
+    );
+    _animController.forward();
+  }
+
+  @override
+  void dispose() {
+    _animController.dispose();
+    super.dispose();
   }
 
   @override
@@ -48,8 +67,6 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
               final playing = snap.data?.playing ?? false;
               final liked = likes.contains(song.id);
               final queueLen = handler.queue.length;
-              // RTL-aware: in RTL, swiping left-to-right (positive velocity)
-              // means "previous" (going back), right-to-left means "next".
               final isRtl = Directionality.of(context) == TextDirection.rtl;
 
               return Padding(
@@ -62,7 +79,6 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
                       key: ValueKey(song.id),
                       direction: DismissDirection.horizontal,
                       onDismissed: (direction) {
-                        // In RTL, startToEnd visually means "back/previous".
                         if (direction == DismissDirection.startToEnd) {
                           isRtl ? handler.previous() : handler.next();
                         } else {
@@ -84,12 +100,12 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
                           }
                         },
                         child: AnimatedSwitcher(
-                          duration: const Duration(milliseconds: 350),
+                          duration: const Duration(milliseconds: 400),
                           transitionBuilder: (child, anim) => SlideTransition(
                             position: Tween<Offset>(
                               begin: const Offset(0.25, 0),
                               end: Offset.zero,
-                            ).animate(CurvedAnimation(parent: anim, curve: Curves.easeOut)),
+                            ).animate(CurvedAnimation(parent: anim, curve: Curves.easeOutCubic)),
                             child: FadeTransition(opacity: anim, child: child),
                           ),
                           child: Stack(
@@ -97,7 +113,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
                             alignment: Alignment.center,
                             children: [
                               ClipRRect(
-                                borderRadius: BorderRadius.circular(8),
+                                borderRadius: BorderRadius.circular(16),
                                 child: Hero(
                                   tag: 'cover_${song.id}',
                                   child: NetImage(song.coverUrl, width: 320, height: 320, radius: 0),
@@ -131,16 +147,24 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(song.title, 
+                              Text(song.title,
                                   style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
                               Text(song.artist, style: const TextStyle(fontSize: 15, color: Colors.grey)),
                             ],
                           ),
                         ),
-                        IconButton(
-                          icon: Icon(liked ? Icons.favorite : Icons.favorite_border,
-                              color: liked ? const Color(0xFF1DB954) : null),
-                          onPressed: () => ref.read(likesProvider.notifier).toggle(song.id),
+                        AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 200),
+                          transitionBuilder: (child, anim) => ScaleTransition(
+                            scale: Tween<double>(begin: 0.5, end: 1.0).animate(anim),
+                            child: FadeTransition(opacity: anim, child: child),
+                          ),
+                          child: IconButton(
+                            key: ValueKey<bool>(liked),
+                            icon: Icon(liked ? Icons.favorite : Icons.favorite_border,
+                                color: liked ? const Color(0xFF1DB954) : null),
+                            onPressed: () => ref.read(likesProvider.notifier).toggle(song.id),
+                          ),
                         ),
                         IconButton(
                           icon: const Icon(Icons.share),
@@ -231,6 +255,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
                                   data: SliderTheme.of(context).copyWith(
                                     trackHeight: 3,
                                     thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
+                                    overlayShape: const RoundSliderOverlayShape(overlayRadius: 12),
                                   ),
                                   child: Slider(
                                     min: 0,
@@ -270,12 +295,22 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
                           ),
                         ),
                         IconButton(iconSize: 40, icon: const Icon(Icons.skip_previous), onPressed: () => handler.previous()),
-                        Container(
+                        AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          curve: Curves.easeOutCubic,
                           decoration: const BoxDecoration(color: Color(0xFF1DB954), shape: BoxShape.circle),
-                          child: IconButton(
-                            iconSize: 44,
-                            icon: Icon(playing ? Icons.pause : Icons.play_arrow, color: Colors.black),
-                            onPressed: () => playing ? handler.pause() : handler.play(),
+                          child: AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 150),
+                            transitionBuilder: (child, anim) => ScaleTransition(
+                              scale: Tween<double>(begin: 0.7, end: 1.0).animate(anim),
+                              child: child,
+                            ),
+                            child: IconButton(
+                              key: ValueKey<bool>(playing),
+                              iconSize: 44,
+                              icon: Icon(playing ? Icons.pause : Icons.play_arrow, color: Colors.black),
+                              onPressed: () => playing ? handler.pause() : handler.play(),
+                            ),
                           ),
                         ),
                         IconButton(iconSize: 40, icon: const Icon(Icons.skip_next), onPressed: () => handler.next()),

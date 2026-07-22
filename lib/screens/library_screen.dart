@@ -87,6 +87,7 @@ class LibraryScreen extends ConsumerWidget {
                                     context,
                                     MaterialPageRoute(builder: (_) => PlaylistDetailScreen(playlist: list[i])),
                                   ),
+                                  onLongPress: () => _showPlaylistOptions(context, ref, list[i]),
                                 ),
                               ),
                             ),
@@ -121,6 +122,89 @@ class LibraryScreen extends ConsumerWidget {
       },
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (e, __) => Center(child: Text(T.errGeneric.replaceAll('{e}', e.toString()))),
+    );
+  }
+
+  void _showPlaylistOptions(BuildContext context, WidgetRef ref, dynamic playlist) {
+    showModalBottomSheet(
+      context: context,
+      builder: (_) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.edit, color: AppColors.primary),
+              title: Text(T.renamePlaylist),
+              onTap: () {
+                Navigator.pop(context);
+                _renamePlaylistDialog(context, ref, playlist);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.delete_outline, color: Colors.redAccent),
+              title: Text(T.deletePlaylist, style: const TextStyle(color: Colors.redAccent)),
+              onTap: () async {
+                Navigator.pop(context);
+                _deletePlaylistConfirm(context, ref, playlist);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _renamePlaylistDialog(BuildContext context, WidgetRef ref, dynamic playlist) {
+    final ctrl = TextEditingController(text: playlist.name);
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text(T.renamePlaylist),
+        content: TextField(controller: ctrl, autofocus: true, decoration: InputDecoration(hintText: T.playlistName)),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: Text(T.cancel)),
+          FilledButton(
+            onPressed: () async {
+              final name = ctrl.text.trim();
+              if (name.isEmpty) return;
+              await ref.read(playlistControllerProvider).rename(playlist.id, name);
+              if (context.mounted) {
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(T.playlistRenamed), backgroundColor: AppColors.primary),
+                );
+              }
+            },
+            child: Text(T.save),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _deletePlaylistConfirm(BuildContext context, WidgetRef ref, dynamic playlist) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text(T.deletePlaylist),
+        content: Text(T.deletePlaylistConfirm),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: Text(T.cancel)),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: Colors.redAccent),
+            onPressed: () async {
+              Navigator.pop(context);
+              await ref.read(playlistControllerProvider).delete(playlist.id);
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(T.playlistDeleted), backgroundColor: Colors.redAccent),
+                );
+              }
+            },
+            child: Text(T.delete),
+          ),
+        ],
+      ),
     );
   }
 

@@ -32,21 +32,90 @@ class SplashScreen extends ConsumerWidget {
   }
 }
 
-class _Loading extends StatelessWidget {
+class _Loading extends StatefulWidget {
   const _Loading();
+
+  @override
+  State<_Loading> createState() => _LoadingState();
+}
+
+class _LoadingState extends State<_Loading> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _scaleAnim;
+  late Animation<double> _fadeAnim;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 1200),
+      vsync: this,
+    );
+    _scaleAnim = Tween<double>(begin: 0.5, end: 1.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.elasticOut),
+    );
+    _fadeAnim = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeIn),
+    );
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.graphic_eq, size: 72, color: AppColors.primary),
-            SizedBox(height: 16),
-            Text('Iran Seda', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-            SizedBox(height: 24),
-            CircularProgressIndicator(color: AppColors.primary),
-          ],
+    return Scaffold(
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [AppColors.darkBg, AppColors.darkSurface],
+          ),
+        ),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ScaleTransition(
+                scale: _scaleAnim,
+                child: FadeTransition(
+                  opacity: _fadeAnim,
+                  child: Container(
+                    width: 100,
+                    height: 100,
+                    decoration: BoxDecoration(
+                      gradient: AppTheme.brandGradient,
+                      borderRadius: BorderRadius.circular(24),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primary.withOpacity(0.4),
+                          blurRadius: 24,
+                          spreadRadius: 2,
+                        ),
+                      ],
+                    ),
+                    child: const Icon(Icons.graphic_eq, size: 56, color: Colors.white),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+              FadeTransition(
+                opacity: _fadeAnim,
+                child: const Text('Iran Seda',
+                    style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white)),
+              ),
+              const SizedBox(height: 28),
+              const SizedBox(
+                width: 28, height: 28,
+                child: CircularProgressIndicator(color: AppColors.primary, strokeWidth: 3),
+              ),
+            ],
+          ),
         ),
       ),
     );

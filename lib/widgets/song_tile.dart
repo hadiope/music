@@ -7,13 +7,15 @@ import 'net_image.dart';
 class SongTile extends StatelessWidget {
   final Song song;
   final VoidCallback onTap;
+  final VoidCallback? onLongPress;
   final Widget? trailing;
-  const SongTile({super.key, required this.song, required this.onTap, this.trailing});
+  const SongTile({super.key, required this.song, required this.onTap, this.onLongPress, this.trailing});
 
   @override
   Widget build(BuildContext context) {
     return ListTile(
       onTap: onTap,
+      onLongPress: onLongPress,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       leading: ClipRRect(
         borderRadius: BorderRadius.circular(4),

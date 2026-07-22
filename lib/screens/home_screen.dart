@@ -76,7 +76,7 @@ class HomeScreen extends ConsumerWidget {
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                T.lang == 'en' ? 'Start your day with a song' : 'روزتون رو با آهنگ شروع کنید',
+                                T.lang == 'en' ? 'Let the rhythm move you 🎶' : T.homeSubtitle,
                                 style: TextStyle(
                                   fontSize: 13,
                                   color: isDark ? AppColors.greyText : Colors.grey.shade600,

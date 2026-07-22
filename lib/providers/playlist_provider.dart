@@ -13,7 +13,7 @@ final playlistSongsProvider = FutureProvider.family<List<Song>, String>((ref, pl
   return ref.watch(databaseProvider).getPlaylistSongs(playlistId);
 });
 
-/// Controller for creating playlists / adding songs.
+/// Controller for creating / renaming / deleting playlists and adding songs.
 final playlistControllerProvider = Provider<PlaylistController>((ref) => PlaylistController(ref));
 
 class PlaylistController {
@@ -27,8 +27,29 @@ class PlaylistController {
     ref.invalidate(playlistsProvider);
   }
 
+  Future<void> rename(String playlistId, String newName) async {
+    await ref.read(databaseProvider).renamePlaylist(playlistId, newName);
+    ref.invalidate(playlistsProvider);
+    ref.invalidate(playlistSongsProvider(playlistId));
+  }
+
+  Future<void> delete(String playlistId) async {
+    await ref.read(databaseProvider).deletePlaylist(playlistId);
+    ref.invalidate(playlistsProvider);
+  }
+
   Future<void> addSong(String playlistId, String songId) async {
     await ref.read(databaseProvider).addToPlaylist(playlistId, songId);
     ref.invalidate(playlistSongsProvider(playlistId));
+  }
+
+  Future<void> removeSong(String playlistId, String songId) async {
+    await ref.read(databaseProvider).removeFromPlaylist(playlistId, songId);
+    ref.invalidate(playlistSongsProvider(playlistId));
+  }
+
+  /// Fetch a playlist by ID (for deep-link: anyone can view a shared playlist).
+  Future<Playlist?> getPlaylistById(String id) async {
+    return ref.read(databaseProvider).getPlaylistById(id);
   }
 }

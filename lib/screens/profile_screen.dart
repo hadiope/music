@@ -104,6 +104,54 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     }
   }
 
+  Future<void> _deleteAccount() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text(T.deleteAccount),
+        content: Text(T.deleteAccountConfirm),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(T.cancel),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: Colors.redAccent),
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(T.deleteAccountBtn),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    setState(() { _saving = true; _msg = null; });
+    try {
+      final u = Supabase.instance.client.auth.currentUser;
+      if (u != null) {
+        // Delete profile data via SQL, then sign out
+        final supa = Supabase.instance.client;
+        await supa.from('playlists').delete().eq('user_id', u.id);
+        await supa.from('likes').delete().eq('user_id', u.id);
+        await supa.from('play_history').delete().eq('user_id', u.id);
+        await supa.from('profiles').delete().eq('id', u.id);
+      }
+      await ref.read(authControllerProvider).signOut();
+      if (mounted) {
+        setState(() { _msg = T.accountDeleted; _msgOk = true; _saving = false; });
+        // Navigate back to auth screen
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const AuthScreen()),
+          (_) => false,
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() { _msg = T.errGeneric.replaceAll('{e}', e.toString()); _msgOk = false; _saving = false; });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     ref.watch(tProvider); // sync language
@@ -132,6 +180,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       ),
       body: ListView(
         children: [
+          // Profile header with gradient
           Container(
             padding: const EdgeInsets.only(top: 8, bottom: 24),
             decoration: BoxDecoration(
@@ -143,15 +192,18 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             ),
             child: Column(
               children: [
-                CircleAvatar(
-                  radius: 46,
-                  backgroundColor: Colors.white,
+                Hero(
+                  tag: 'profile_avatar',
                   child: CircleAvatar(
-                    radius: 42,
-                    backgroundColor: AppColors.primary,
-                    child: Text(
-                      (name.isNotEmpty ? name[0] : _email()[0]).toUpperCase(),
-                      style: const TextStyle(fontSize: 34, color: Colors.white, fontWeight: FontWeight.bold),
+                    radius: 46,
+                    backgroundColor: Colors.white,
+                    child: CircleAvatar(
+                      radius: 42,
+                      backgroundColor: AppColors.primary,
+                      child: Text(
+                        (name.isNotEmpty ? name[0] : _email()[0]).toUpperCase(),
+                        style: const TextStyle(fontSize: 34, color: Colors.white, fontWeight: FontWeight.bold),
+                      ),
                     ),
                   ),
                 ),
@@ -321,9 +373,28 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           ListTile(
             leading: const Icon(Icons.info_outline),
             title: Text(T.about),
-            subtitle: const Text('Version 1.1.0'),
+            subtitle: const Text('Version 1.2.0'),
             onTap: () {},
           ),
+
+          // --- Delete account (only for signed-in users) ---
+          if (!_isGuest()) ...[
+            const Divider(height: 28),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.redAccent,
+                  side: const BorderSide(color: Colors.redAccent),
+                ),
+                onPressed: _saving ? null : _deleteAccount,
+                icon: _saving
+                    ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.redAccent))
+                    : const Icon(Icons.person_remove),
+                label: Text(T.deleteAccount),
+              ),
+            ),
+          ],
 
           const SizedBox(height: 20),
         ],

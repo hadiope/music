@@ -26,12 +26,13 @@ class _MainShellState extends ConsumerState<MainShell> {
     [Icons.library_music_outlined, Icons.library_music],
     [Icons.folder_outlined, Icons.folder],
   ];
-  final _labels = [T.home, T.search, T.library, T.myMusic];
 
   @override
   Widget build(BuildContext context) {
     ref.watch(tProvider); // keep T in sync with locale
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    // Labels must be read inside build() so they update on locale change.
+    final labels = [T.home, T.search, T.library, T.myMusic];
     return Scaffold(
       body: IndexedStack(index: _index, children: _pages),
       bottomNavigationBar: Column(
@@ -57,24 +58,40 @@ class _MainShellState extends ConsumerState<MainShell> {
                     final active = _index == i;
                     final inactiveColor = isDark ? Colors.grey.shade500 : Colors.grey.shade600;
                     return GestureDetector(
-                      onTap: () => setState(() => _index = i),
-                      child: Padding(
+                      onTap: () {
+                        if (i != _index) {
+                          setState(() => _index = i);
+                        }
+                      },
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        curve: Curves.easeOutCubic,
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(
-                              active ? _icons[i][1] : _icons[i][0],
-                              color: active ? AppColors.primary : inactiveColor,
+                            AnimatedSwitcher(
+                              duration: const Duration(milliseconds: 250),
+                              transitionBuilder: (child, anim) => ScaleTransition(
+                                scale: Tween<double>(begin: 0.8, end: 1.0).animate(anim),
+                                child: FadeTransition(opacity: anim, child: child),
+                              ),
+                              child: Icon(
+                                active ? _icons[i][1] : _icons[i][0],
+                                key: ValueKey<bool>(active),
+                                color: active ? AppColors.primary : inactiveColor,
+                                size: active ? 26 : 24,
+                              ),
                             ),
                             const SizedBox(height: 3),
-                            Text(
-                              _labels[i],
+                            AnimatedDefaultTextStyle(
+                              duration: const Duration(milliseconds: 200),
                               style: TextStyle(
                                 fontSize: 11,
                                 fontWeight: active ? FontWeight.bold : FontWeight.normal,
                                 color: active ? AppColors.primary : inactiveColor,
                               ),
+                              child: Text(labels[i]),
                             ),
                           ],
                         ),

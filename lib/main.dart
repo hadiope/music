@@ -16,28 +16,34 @@ import 'screens/main_shell.dart';
 import 'screens/playlist_detail_screen.dart';
 import 'models/playlist.dart';
 
-/// Parses a deep link (https://hadiope.github.io/music/#/playlist/<id>
-/// or shad://playlist/<id> or /playlist/<id>) into a playlist id, or null.
+/// Parses a deep link into a playlist id, or null.
+/// Supports:
+///   iranseda://playlist/<id>
+///   https://hadiope.github.io/music/#/playlist/<id>
+///   https://hadiope.github.io/music/playlist/<id>
+///   /playlist/<id> (internal route)
 String? _parsePlaylistId(String? link) {
   if (link == null || link.isEmpty) return null;
   // hash route from github pages: .../#/playlist/<id>
   final hash = Uri.parse(link);
   if (hash.fragment.startsWith('/playlist/')) {
-    return hash.fragment.split('/')[2];
+    final parts = hash.fragment.split('/');
+    if (parts.length > 2) return parts[2].split('?')[0];
   }
   // in-app route (onGenerateRoute name): /playlist/<id>
   if (link.startsWith('/playlist/')) {
-    return link.split('/')[2];
+    return link.split('/')[2].split('?')[0];
   }
-  // scheme host route
+  // iranseda://playlist/<id>
   final uri = Uri.parse(link);
-  if ((uri.scheme == 'shad' || uri.scheme == 'https') &&
-      uri.host == 'hadiope.github.io' &&
-      uri.path.startsWith('/music/playlist/')) {
-    return uri.pathSegments.last;
-  }
   if (uri.scheme == 'iranseda' && uri.host == 'playlist') {
     return uri.pathSegments.isNotEmpty ? uri.pathSegments.first : null;
+  }
+  // https://hadiope.github.io/music/playlist/<id>
+  if (uri.scheme == 'https' && uri.host == 'hadiope.github.io') {
+    if (uri.pathSegments.length >= 2 && uri.pathSegments[0] == 'music' && uri.pathSegments[1] == 'playlist') {
+      return uri.pathSegments.length >= 3 ? uri.pathSegments[2] : null;
+    }
   }
   return null;
 }
@@ -115,11 +121,9 @@ class _HarmonyAppState extends ConsumerState<HarmonyApp> with WidgetsBindingObse
   Future<void> _openPlaylistFromLink(String? link) async {
     final id = _parsePlaylistId(link);
     if (id == null || !mounted) return;
-    // Wait for playlists to load, then navigate.
-    final playlists = await ref.read(playlistsProvider.future);
-    if (!mounted) return;
-    final pl = playlists.where((p) => p.id == id).firstOrNull;
-    if (pl != null && context.mounted) {
+    // Fetch the playlist by ID (works for any user since playlists are public-readable).
+    final pl = await ref.read(playlistControllerProvider).getPlaylistById(id);
+    if (pl != null && mounted) {
       Navigator.of(context).push(
         MaterialPageRoute(builder: (_) => PlaylistDetailScreen(playlist: pl)),
       );
@@ -128,8 +132,6 @@ class _HarmonyAppState extends ConsumerState<HarmonyApp> with WidgetsBindingObse
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    // Cold-start deep links are handled by the OS passing the intent to
-    // MainActivity; we re-check on resume for safety.
     super.didChangeAppLifecycleState(state);
   }
 
@@ -185,21 +187,29 @@ class _DeepLinkPlaylistLoader extends ConsumerWidget {
   const _DeepLinkPlaylistLoader({required this.playlistId});
 
   @override
-  Widget build(BuildContext, WidgetRef ref) {
-    final playlists = ref.watch(playlistsProvider);
-    return playlists.when(
-      data: (list) {
-        final pl = list.where((p) => p.id == playlistId).firstOrNull;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final db = ref.watch(databaseProvider);
+    return FutureBuilder<Playlist?>(
+      future: db.getPlaylistById(playlistId),
+      builder: (context, snap) {
+        if (snap.connectionState == ConnectionState.waiting) {
+          return const Scaffold(body: Center(child: CircularProgressIndicator()));
+        }
+        if (snap.hasError) {
+          return Scaffold(
+            appBar: AppBar(),
+            body: Center(child: Text('${T.errorPrefix}${snap.error}')),
+          );
+        }
+        final pl = snap.data;
         if (pl == null) {
           return Scaffold(
             appBar: AppBar(),
-            body: const Center(child: Text('پلی‌لیست پیدا نشد')),
+            body: Center(child: Text(T.playlistNotFound)),
           );
         }
         return PlaylistDetailScreen(playlist: pl);
       },
-      loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
-      error: (e, _) => Scaffold(body: Center(child: Text('خطا: $e'))),
     );
   }
 }
@@ -216,12 +226,12 @@ class _SetupNeededScreen extends StatelessWidget {
           padding: const EdgeInsets.all(28),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: const [
-              Icon(Icons.settings_suggest, size: 72, color: Color(0xFF1DB954)),
-              SizedBox(height: 20),
-              Text('Iran Seda', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-              SizedBox(height: 16),
-              Text(
+            children: [
+              const Icon(Icons.settings_suggest, size: 72, color: Color(0xFF1DB954)),
+              const SizedBox(height: 20),
+              const Text('Iran Seda', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 16),
+              const Text(
                 'اپ با موفقیت نصب شد ✅\n\nبرای فعال شدن آهنگ‌ها و ورود،\nباید اطلاعات Supabase را در فایل\nlib/core/constants.dart وارد کنی\nو دوباره build بگیری.',
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 15, height: 1.8, color: Colors.grey),

@@ -121,13 +121,31 @@ class DatabaseService {
     return (res as List).map((e) => Playlist.fromMap(e)).toList();
   }
 
+  Future<Playlist?> getPlaylistById(String id) async {
+    final res = await _db.from('playlists').select().eq('id', id).maybeSingle();
+    if (res == null) return null;
+    return Playlist.fromMap(res);
+  }
+
   Future<Playlist> createPlaylist(String userId, String name) async {
     final res = await _db.from('playlists').insert({'user_id': userId, 'name': name}).select().single();
     return Playlist.fromMap(res);
   }
 
+  Future<void> renamePlaylist(String playlistId, String newName) async {
+    await _db.from('playlists').update({'name': newName}).eq('id', playlistId);
+  }
+
+  Future<void> deletePlaylist(String playlistId) async {
+    await _db.from('playlists').delete().eq('id', playlistId);
+  }
+
   Future<void> addToPlaylist(String playlistId, String songId) async {
     await _db.from('playlist_songs').insert({'playlist_id': playlistId, 'song_id': songId});
+  }
+
+  Future<void> removeFromPlaylist(String playlistId, String songId) async {
+    await _db.from('playlist_songs').delete().match({'playlist_id': playlistId, 'song_id': songId});
   }
 
   Future<List<Song>> getPlaylistSongs(String playlistId) async {

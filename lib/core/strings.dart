@@ -143,4 +143,29 @@ class T {
   // library / playlist errors
   static String get errGeneric => _lang == 'en' ? 'Error: {e}' : 'خطا: {e}';
   static String get addedFromDevice => _lang == 'en' ? '{n} songs added from device' : '{n} آهنگ از گوشی اضافه شد';
+
+  // playlist management
+  static String get renamePlaylist => _lang == 'en' ? 'Rename playlist' : 'تغییر نام پلی‌لیست';
+  static String get deletePlaylist => _lang == 'en' ? 'Delete playlist' : 'حذف پلی‌لیست';
+  static String get deletePlaylistConfirm => _lang == 'en'
+      ? 'Are you sure you want to delete this playlist?'
+      : 'مطمئنی می‌خوای این پلی‌لیست رو پاک کنی؟';
+  static String get delete => _lang == 'en' ? 'Delete' : 'حذف';
+  static String get rename => _lang == 'en' ? 'Rename' : 'تغییر نام';
+  static String get save => _lang == 'en' ? 'Save' : 'ذخیره';
+  static String get playlistDeleted => _lang == 'en' ? 'Playlist deleted' : 'پلی‌لیست حذف شد';
+  static String get playlistRenamed => _lang == 'en' ? 'Playlist renamed' : 'نام پلی‌لیست تغییر کرد';
+  static String get removeSong => _lang == 'en' ? 'Remove from playlist' : 'حذف از پلی‌لیست';
+  static String get playlistNotFound => _lang == 'en' ? 'Playlist not found' : 'پلی‌لیست پیدا نشد';
+
+  // account deletion
+  static String get deleteAccount => _lang == 'en' ? 'Delete account' : 'حذف حساب کاربری';
+  static String get deleteAccountConfirm => _lang == 'en'
+      ? 'Are you sure? This will permanently delete your account and all data. This cannot be undone.'
+      : 'مطمئنی؟ حساب کاربری و تمام اطلاعات شما برای همیشه پاک می‌شود. این کار قابل بازگشت نیست.';
+  static String get deleteAccountBtn => _lang == 'en' ? 'Yes, delete my account' : 'بله، حساب من رو پاک کن';
+  static String get accountDeleted => _lang == 'en' ? 'Account deleted' : 'حساب کاربری حذف شد';
+
+  // home subtitle
+  static String get homeSubtitle => _lang == 'en' ? 'Let the rhythm move you 🎶' : 'بذار ریتم ببرتش 🎶';
 }
