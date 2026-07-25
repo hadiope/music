@@ -1,7 +1,7 @@
 name: iranseda
-description: Iran Seda - a music streaming app built with Flutter & Supabase.
+description: Iran Seda - Premium Music Streaming & Local Player built with Flutter & Supabase.
 publish_to: 'none'
-version: 1.3.0+4
+version: 2.0.0+1
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -22,24 +22,45 @@ dependencies:
   # Audio
   just_audio: ^0.9.40
 
-  # UI / UX
+  # Local Music - File & Metadata
+  file_picker: ^8.0.0
+  permission_handler: ^11.3.1
+  path_provider: ^2.1.2
+  metadata_gast: ^0.2.2
+  flutter_media_metadata: ^1.1.1
+  
+  # Local Database
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+  
+  # UI / UX - Enhanced
   cached_network_image: ^3.3.1
   google_fonts: ^6.2.1
   shimmer: ^3.0.0
   flutter_svg: ^2.0.10+1
   smooth_page_indicator: ^1.1.0
-
+  
+  # Theme & Glassmorphism
+  palette_generator: ^0.3.3+2
+  
+  # Animations & Transitions
+  animations: ^2.0.11
+  
+  # Audio Visualization & Waveform
+  flutter_audio_waveforms: ^1.0.11
+  audio_video_progress_bar: ^0.10.0
+  
   # Utils
   url_launcher: ^6.3.0
   share_plus: ^9.0.0
   shared_preferences: ^2.2.3
-  file_picker: ^8.0.0
-  permission_handler: ^11.3.1
   intl: ^0.20.2
-  # Deep linking (open playlist from shared link)
   app_links: ^6.4.0
+
 dev_dependencies:
   flutter_lints: ^4.0.0
+  hive_generator: ^2.0.1
+  build_runner: ^2.4.9
 
 flutter:
   uses-material-design: true
