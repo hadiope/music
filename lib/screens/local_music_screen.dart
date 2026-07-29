@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../models/local_song.dart';
-../core/theme.dart';
+import '../core/theme.dart';
 import '../core/strings.dart';
 import '../providers/local_music_provider.dart';
 import '../widgets/glassmorphism.dart';
@@ -426,6 +426,3 @@ class _LocalMusicScreenState extends ConsumerState<LocalMusicScreen>
       );
 }
 
-import 'dart:io';
-import 'package:cached_network_image/cached_network_image.dart';
-import '../models/song.dart';

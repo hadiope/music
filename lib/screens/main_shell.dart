@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -36,7 +37,7 @@ class _MainShellState extends ConsumerState<MainShell> with TickerProviderStateM
     [Icons.home_outlined, Icons.home],
     [Icons.search_outlined, Icons.search],
     [Icons.library_music_outlined, Icons.library_music],
-    [Icons.music_folder_outlined, Icons.music_folder],
+    [Icons.folder_open, Icons.folder],
     [Icons.person_outline, Icons.person],
   ];
 
