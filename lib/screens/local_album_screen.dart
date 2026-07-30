@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/local_song.dart';
 import '../providers/local_music_provider.dart';
+import '../providers/core_providers.dart';
+import '../services/audio_handler.dart';
 import '../widgets/song_tile.dart';
 import '../core/theme.dart';
 import '../core/strings.dart';
@@ -20,6 +22,7 @@ class LocalAlbumScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final songsAsync = ref.watch(_localSongsByAlbumProvider(albumName));
+    final handler = ref.watch(audioHandlerProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -40,7 +43,7 @@ class LocalAlbumScreen extends ConsumerWidget {
                   final song = songs[i];
                   return SongTile(
                     song: song.toSong(),
-                    onTap: () => _playSong(context, songs, i),
+                    onTap: () => _playSong(context, handler, songs, i),
                   );
                 },
               ),
@@ -50,8 +53,7 @@ class LocalAlbumScreen extends ConsumerWidget {
     );
   }
 
-  void _playSong(BuildContext context, List<LocalSong> queue, int index) {
-    final handler = ref.read(audioHandlerProvider);
+  void _playSong(BuildContext context, AudioPlayerHandler handler, List<LocalSong> queue, int index) {
     final songs = queue.map((s) => s.toSong()).toList();
     handler.setQueueSafe(songs, startIndex: index).then((err) {
       if (err == null) {
