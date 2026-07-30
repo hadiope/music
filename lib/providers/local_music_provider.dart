@@ -127,5 +127,6 @@ extension LocalSongToSong on LocalSong {
         durationMs: durationMs,
         genre: genre,
         plays: 0,
+        lyrics: null,
       );
 }

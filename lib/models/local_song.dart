@@ -20,6 +20,7 @@ class LocalSong extends Song {
     this.isFavorite = false,
     super.durationMs,
     super.genre,
+    super.plays = 0,
   }) : super(audioUrl: filePath);
 
   Map<String, dynamic> toDbMap() => {
