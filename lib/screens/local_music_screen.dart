@@ -192,10 +192,12 @@ class _LocalMusicScreenState extends ConsumerState<LocalMusicScreen>
                   ),
                   title: Text(artist, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
                   subtitle: FutureBuilder<int>(
-                    future: _getArtistSongCount(artist),
+                    future: ref.watch(_artistSongCountProvider(artist)),
                     builder: (context, snap) => Text(
-                      '${snap.data ?? 0} آهنگ',
+                      '${snap.data?.toString() ?? '0'} آهنگ',
                       style: const TextStyle(color: AppColors.greyText, fontSize: 13),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                   trailing: const Icon(Icons.chevron_right, color: AppColors.greyText),
@@ -209,11 +211,6 @@ class _LocalMusicScreenState extends ConsumerState<LocalMusicScreen>
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (e, _) => _errorState(e.toString()),
     );
-  }
-
-  Future<int> _getArtistSongCount(String artist) async {
-    final songs = await ref.read(localMusicServiceProvider).getSongsByArtist(artist);
-    return songs.length;
   }
 
   Widget _buildAlbumsTab(AsyncValue<List<MapEntry<String, String>>> albumsAsync) {
@@ -230,9 +227,9 @@ class _LocalMusicScreenState extends ConsumerState<LocalMusicScreen>
                   leading: ClipRRect(
                     borderRadius: BorderRadius.circular(8),
                     child: FutureBuilder<String?>(
-                      future: _getAlbumArt(album.key),
+                      future: ref.watch(_albumArtProvider(album.key)),
                       builder: (context, snap) {
-                        if (snap.hasData && snap.data!.isNotEmpty) {
+                        if (snap.hasData && snap.data != null && snap.data!.isNotEmpty) {
                           return Image.file(File(snap.data!), width: 56, height: 56, fit: BoxFit.cover);
                         }
                         return Container(
@@ -268,91 +265,24 @@ class _LocalMusicScreenState extends ConsumerState<LocalMusicScreen>
     }
     return null;
   }
+}
 
-  Widget _buildFoldersTab() {
-    return _emptyState('پشتیبانی از پوشه‌ها در نسخه‌های آینده', Icons.folder_open);
-  }
+// Provider for artist song count
+final _artistSongCountProvider = FutureProvider.family<int, String>((ref, artist) async {
+  final songs = await ref.watch(localMusicServiceProvider).getSongsByArtist(artist);
+  return songs.length;
+});
 
-  Widget _buildFavoritesTab(AsyncValue<List<LocalSong>> favoritesAsync) {
-    return favoritesAsync.when(
-      data: (songs) => songs.isEmpty
-          ? _emptyState('هنوز آهنگ محبوبی نداری', Icons.favorite_border)
-          : ListView.builder(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
-              itemCount: songs.length,
-              itemBuilder: (_, i) {
-                final song = songs[i];
-                return SongTile(
-                  song: Song(
-                    id: song.id,
-                    title: song.title,
-                    artist: song.artist,
-                    album: song.album,
-                    coverUrl: song.albumArtPath ?? '',
-                    audioUrl: song.filePath,
-                    durationMs: song.durationMs,
-                    genre: song.genre,
-                  ),
-                  onTap: () => _playSong(context, songs, i),
-                  leading: _buildLocalLeading(song),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.favorite, color: AppColors.primary, size: 22),
-                    onPressed: () => ref.read(localMusicServiceProvider).toggleFavorite(song.id),
-                  ),
-                ).animate().fadeIn(delay: (i * 20).ms).slideX(begin: 0.1);
-              },
-            ),
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, _) => _errorState(e.toString()),
-    );
-  }
-
-  Widget _buildLocalLeading(LocalSong song) {
+// Provider for album art
+final _albumArtProvider = FutureProvider.family<String?, String>((ref, album) async {
+  final songs = await ref.watch(localMusicServiceProvider).getSongsByAlbum(album);
+  for (final song in songs) {
     if (song.albumArtPath != null && song.albumArtPath!.isNotEmpty) {
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(4),
-        child: Image.file(
-          File(song.albumArtPath!),
-          width: 50,
-          height: 50,
-          fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => _defaultLeading(),
-        ),
-      );
+      return song.albumArtPath;
     }
-    return _defaultLeading();
   }
-
-  Widget _defaultLeading() => Container(
-        width: 50,
-        height: 50,
-        decoration: BoxDecoration(
-          color: AppColors.primary.withOpacity(0.2),
-          borderRadius: BorderRadius.circular(4),
-        ),
-        child: const Icon(Icons.music_note, color: AppColors.primary, size: 24),
-      );
-
-  void _playSong(BuildContext context, List<LocalSong> queue, int index) {
-    final handler = ref.read(audioHandlerProvider);
-    final songs = queue.map((s) => Song(
-      id: s.id,
-      title: s.title,
-      artist: s.artist,
-      album: s.album,
-      coverUrl: s.albumArtPath ?? '',
-      audioUrl: s.filePath,
-      durationMs: s.durationMs,
-      genre: s.genre,
-    )).toList();
-    
-    handler.setQueueSafe(songs, startIndex: index).then((err) {
-      if (err == null) {
-        Navigator.push(context, MaterialPageRoute(builder: (_) => const PlayerScreen()));
-      } else if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('خطا: $err'), backgroundColor: Colors.red));
-      }
-    });
+  return null;
+});
   }
 
   Widget _emptyState(String message, IconData icon) {
@@ -426,4 +356,10 @@ class _LocalMusicScreenState extends ConsumerState<LocalMusicScreen>
         ),
       );
 }
+
+// Provider for artist song count
+final _artistSongCountProvider = FutureProvider.family<int, String>((ref, artist) async {
+  final songs = await ref.watch(localMusicServiceProvider).getSongsByArtist(artist);
+  return songs.length;
+});
 
